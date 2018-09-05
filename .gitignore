@@ -1,0 +1,11 @@
+# Robocode files and folders
+sample*/
+*.database
+
+# IntelliJ IDEA files and folders
+.idea
+*.iml
+out/
+
+# Java class files
+*.class
