@@ -14,15 +14,14 @@ public class NeuralNetwork {
         this.weightMatrix = weightMatrix;
     }
 
-    public NeuralNetworkOutput process(NeuralNetworkInput input) {
-        return transformOutput(process(transformInput(input)));
-    }
-
     public float[] process(float[] input) {
 
-        validateInput(input);
+        if (input.length != WeightMatrix.INPUT_NEURONS) {
+            throw new IllegalArgumentException(String.format(
+                    "%d input neurons expected, but found %d", WeightMatrix.INPUT_NEURONS, input.length));
+        }
 
-        float[] inputNeurons = Arrays.copyOf(input, input.length + 1);
+        float[] inputNeurons = normalize(Arrays.copyOf(input, input.length + 1));
         inputNeurons[inputNeurons.length - 1] = SHIFT_NEURON_VALUE;
 
         float[] hiddenNeurons = new float[WeightMatrix.HIDDEN_NEURONS + 1];
@@ -39,19 +38,6 @@ public class NeuralNetwork {
         return outputNeurons;
     }
 
-    private void validateInput(float[] input) {
-        if (input.length != WeightMatrix.INPUT_NEURONS) {
-            throw new IllegalArgumentException(String.format(
-                    "%d input neurons expected, but found %d", WeightMatrix.INPUT_NEURONS, input.length));
-        }
-        for (float neuronValue : input) {
-            if (neuronValue < NEURON_MIN_VALUE || neuronValue > NEURON_MAX_VALUE) {
-                throw new IllegalArgumentException(String.format("Neuron value %f out of bounds [%f, %f]",
-                        neuronValue, NEURON_MIN_VALUE, NEURON_MAX_VALUE));
-            }
-        }
-    }
-
     private static float multiply(float[] left, float[] right) {
         if (left.length != right.length) {
             throw new IllegalArgumentException(String.format("Trying to multiply vectors of different size: %d and %d",
@@ -65,6 +51,13 @@ public class NeuralNetwork {
         return result;
     }
 
+    private static float[] normalize(float[] neuronValues) {
+        for (int i = 0; i < neuronValues.length; i++) {
+            neuronValues[i] = normalize(neuronValues[i]);
+        }
+        return neuronValues;
+    }
+
     private static float normalize(float neuronValue) {
         if (neuronValue < NEURON_MIN_VALUE) {
             return NEURON_MIN_VALUE;
@@ -73,14 +66,5 @@ public class NeuralNetwork {
             return NEURON_MAX_VALUE;
         }
         return neuronValue;
-    }
-
-
-    private static float[] transformInput(NeuralNetworkInput input) {
-        throw new UnsupportedOperationException();
-    }
-
-    private static NeuralNetworkOutput transformOutput(float[] output) {
-        throw new UnsupportedOperationException();
     }
 }
