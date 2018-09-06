@@ -1,5 +1,6 @@
 package sergey.lavrenyuk.io;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -8,24 +9,27 @@ import java.util.Iterator;
 
 public class PartitionedFileInputStream extends InputStream {
 
-    private Iterator<String> fileNames;
-
+    private Iterator<File> files;
     private FileInputStream currentFileInputStream;
 
-    public PartitionedFileInputStream(Iterator<String> fileNames) throws IOException {
-        if (!fileNames.hasNext()) {
-            throw new IllegalArgumentException("file names iterator has no elements");
+    public PartitionedFileInputStream(String filePattern) throws IOException {
+        this(new PatternFiles.Iterator(filePattern));
+    }
+
+    public PartitionedFileInputStream(Iterator<File> files) throws IOException {
+        if (!files.hasNext()) {
+            throw new IllegalArgumentException("files iterator has no elements");
         }
-        this.fileNames = fileNames;
-        this.currentFileInputStream = new FileInputStream(IO.getFile(fileNames.next()));
+        this.files = files;
+        this.currentFileInputStream = new FileInputStream(files.next());
     }
 
     @Override
     public int read() throws IOException {
         int bytesRead = currentFileInputStream.read();
-        if (bytesRead == -1 && fileNames.hasNext()) {
+        if (bytesRead == -1 && files.hasNext()) {
             currentFileInputStream.close();
-            currentFileInputStream = new FileInputStream(IO.getFile(fileNames.next()));
+            currentFileInputStream = new FileInputStream(files.next());
             return read();
 
         }
@@ -35,12 +39,12 @@ public class PartitionedFileInputStream extends InputStream {
     @Override
     public int read(byte b[], int off, int len) throws IOException {
         int bytesRead = currentFileInputStream.read(b, off, len);
-        if (bytesRead < len && fileNames.hasNext()) {
+        if (bytesRead < len && files.hasNext()) {
             if (bytesRead == -1) {
                 bytesRead = 0;
             }
             currentFileInputStream.close();
-            currentFileInputStream = new FileInputStream(IO.getFile(fileNames.next()));
+            currentFileInputStream = new FileInputStream(files.next());
             return read(b, off + bytesRead, len - bytesRead) + bytesRead;
         }
         return bytesRead;
@@ -49,6 +53,6 @@ public class PartitionedFileInputStream extends InputStream {
     @Override
     public void close() throws IOException {
         currentFileInputStream.close();
-        fileNames = Collections.emptyIterator();
+        files = Collections.emptyIterator();
     }
 }
