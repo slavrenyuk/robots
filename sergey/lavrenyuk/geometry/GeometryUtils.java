@@ -1,7 +1,8 @@
-package sergey.lavrenyuk;
+package sergey.lavrenyuk.geometry;
 
-public class MyRobotUtils {
-    private MyRobotUtils() {}
+public class GeometryUtils {
+
+    private GeometryUtils() {}
 
     public static Data2D calculateCoordinates(double startX, double startY, double angleRadians, double distance) {
         return new Data2D(
@@ -10,7 +11,7 @@ public class MyRobotUtils {
     }
 
     public static Data2D toNormalizedCenterBasedCoordinates(double bottomLeftBasedX, double bottomLeftBasedY,
-                                                             double width, double height) {
+                                                            double width, double height) {
         double halfWidth = width / 2;
         double halfHeight = height / 2;
         return new Data2D(

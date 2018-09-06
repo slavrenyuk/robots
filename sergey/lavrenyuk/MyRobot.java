@@ -6,6 +6,7 @@ import robocode.Rules;
 import robocode.ScannedRobotEvent;
 import robocode.StatusEvent;
 import robocode.util.Utils;
+import sergey.lavrenyuk.geometry.Data2D;
 import sergey.lavrenyuk.io.IO;
 import sergey.lavrenyuk.io.Log;
 import sergey.lavrenyuk.neural.network.NeuralNetwork;
@@ -14,10 +15,10 @@ import sergey.lavrenyuk.test.TestSupport;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import static sergey.lavrenyuk.MyRobotUtils.calculateCoordinates;
-import static sergey.lavrenyuk.MyRobotUtils.toBottomLeftBasedCoordinate;
-import static sergey.lavrenyuk.MyRobotUtils.toNormalizedCenterBasedCoordinates;
-import static sergey.lavrenyuk.MyRobotUtils.toNormalizedMovement;
+import static sergey.lavrenyuk.geometry.GeometryUtils.calculateCoordinates;
+import static sergey.lavrenyuk.geometry.GeometryUtils.toBottomLeftBasedCoordinate;
+import static sergey.lavrenyuk.geometry.GeometryUtils.toNormalizedCenterBasedCoordinates;
+import static sergey.lavrenyuk.geometry.GeometryUtils.toNormalizedMovement;
 
 public class MyRobot extends AdvancedRobot {
 

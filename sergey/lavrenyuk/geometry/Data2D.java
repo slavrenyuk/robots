@@ -1,4 +1,4 @@
-package sergey.lavrenyuk;
+package sergey.lavrenyuk.geometry;
 
 public class Data2D {
     private final double x;
