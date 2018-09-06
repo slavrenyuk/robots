@@ -7,6 +7,8 @@ import java.util.function.Supplier;
 
 public class IO {
 
+    private IO() {}
+
     private static Supplier<PrintStream> consoleSupplier =
             () -> { throw new IllegalStateException("Uninitialized IO"); };
 

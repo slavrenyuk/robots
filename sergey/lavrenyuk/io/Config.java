@@ -9,6 +9,8 @@ import java.util.function.Function;
 
 public class Config {
 
+    private Config() {}
+
     private static final Properties PROPERTIES = loadProperties("config.properties");
 
     public static String getString(String key, String defaultValue) {

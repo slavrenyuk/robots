@@ -1,6 +1,5 @@
 package sergey.lavrenyuk.neural.network;
 
-import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.Objects;
 
@@ -56,47 +55,6 @@ public class WeightMatrix {
 
     public float[][] getHiddenToOutputWeights() {
         return hiddenToOutputWeights;
-    }
-
-    public byte[] toBytes() {
-        ByteBuffer byteBuffer = ByteBuffer.wrap(new byte[SIZE_IN_BYTES]);
-        for (float[] weights : inputToHiddenWeights) {
-            for (float weight : weights) {
-                byteBuffer.putFloat(weight);
-            }
-        }
-        for (float[] weights : hiddenToOutputWeights) {
-            for (float weight : weights) {
-                byteBuffer.putFloat(weight);
-            }
-        }
-        return byteBuffer.array();
-    }
-
-    public static WeightMatrix fromBytes(byte[] bytes) {
-        if (bytes.length != SIZE_IN_BYTES) {
-            throw new IllegalArgumentException(String.format("Incorrect number of bytes. Got %d, expected %d.",
-                    bytes.length, SIZE_IN_BYTES));
-        }
-
-        ByteBuffer byteBuffer = ByteBuffer.wrap(bytes);
-        // +1 because of the shift neuron
-        float[][] inputToHiddenWeights = new float[HIDDEN_NEURONS][INPUT_NEURONS + 1];
-        float[][] hiddenToOutputWeights = new float[OUTPUT_NEURONS][HIDDEN_NEURONS + 1];
-
-        for (int i = 0; i < HIDDEN_NEURONS; i++) {
-            for (int j = 0; j < INPUT_NEURONS + 1; j++) {
-                inputToHiddenWeights[i][j] = byteBuffer.getFloat();
-            }
-        }
-
-        for (int i = 0; i < OUTPUT_NEURONS; i++) {
-            for (int j = 0; j < HIDDEN_NEURONS + 1; j++) {
-                hiddenToOutputWeights[i][j] = byteBuffer.getFloat();
-            }
-        }
-
-        return new WeightMatrix(inputToHiddenWeights, hiddenToOutputWeights);
     }
 
     @Override

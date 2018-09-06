@@ -1,0 +1,1 @@
+1. add some neural network test which will verify input / output on a huge matrix

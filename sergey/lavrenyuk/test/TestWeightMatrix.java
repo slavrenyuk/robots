@@ -15,18 +15,10 @@ public class TestWeightMatrix extends TestSupport {
     }
 
     public void testInvalidArgumentsSize() {
-        assertExceptionThrown(() -> {
-            new WeightMatrix(
-                    randomWeights(WeightMatrix.HIDDEN_NEURONS, WeightMatrix.INPUT_NEURONS + 1, 100),
-                    randomWeights(WeightMatrix.OUTPUT_NEURONS, WeightMatrix.HIDDEN_NEURONS + 4, 100));
-        }, IllegalArgumentException.class, "15 hidden to output neuron weights expected, but found 18");
-    }
-
-    public void testBytesSerialization() {
-        WeightMatrix wm = new WeightMatrix(
-                randomWeights(WeightMatrix.HIDDEN_NEURONS, WeightMatrix.INPUT_NEURONS + 1, 100),
-                randomWeights(WeightMatrix.OUTPUT_NEURONS, WeightMatrix.HIDDEN_NEURONS + 1, 100));
-        WeightMatrix wm2 = WeightMatrix.fromBytes(wm.toBytes());
-        assertCondition(wm.equals(wm2));
+        assertExceptionThrown(
+                () -> new WeightMatrix(
+                        randomWeights(WeightMatrix.HIDDEN_NEURONS, WeightMatrix.INPUT_NEURONS + 1, 100),
+                        randomWeights(WeightMatrix.OUTPUT_NEURONS, WeightMatrix.HIDDEN_NEURONS + 4, 100)),
+                IllegalArgumentException.class, "15 hidden to output neuron weights expected, but found 18");
     }
 }
