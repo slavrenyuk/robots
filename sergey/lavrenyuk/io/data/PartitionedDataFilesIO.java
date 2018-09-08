@@ -32,6 +32,16 @@ public class PartitionedDataFilesIO implements DataIO {
     private File previousInputFile;
     private File currentInputFile;
 
+
+
+    public PartitionedDataFilesIO(String inputFilePattern,
+                                  String outputFilePattern,
+                                  int inputItemSize,
+                                  int outputItemSize,
+                                  int startFileIndex) throws IOException {
+        this(inputFilePattern, outputFilePattern, inputItemSize, outputItemSize, startFileIndex, true);
+    }
+
     public PartitionedDataFilesIO(String inputFilePattern,
                                   String outputFilePattern,
                                   int inputItemSize,
