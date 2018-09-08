@@ -1,9 +1,9 @@
 package sergey.lavrenyuk.test;
 
 import sergey.lavrenyuk.io.Serializer;
-import sergey.lavrenyuk.neural.network.Score;
-import sergey.lavrenyuk.neural.network.ScoredWeightMatrix;
-import sergey.lavrenyuk.neural.network.WeightMatrix;
+import sergey.lavrenyuk.nn.Score;
+import sergey.lavrenyuk.nn.ScoredWeightMatrix;
+import sergey.lavrenyuk.nn.WeightMatrix;
 
 public class TestSerializer extends TestSupport {
 

@@ -1,4 +1,4 @@
-package sergey.lavrenyuk.neural.network;
+package sergey.lavrenyuk.nn;
 
 import java.util.ArrayList;
 import java.util.List;

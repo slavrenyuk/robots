@@ -9,9 +9,10 @@ import robocode.util.Utils;
 import sergey.lavrenyuk.geometry.Data2D;
 import sergey.lavrenyuk.io.IO;
 import sergey.lavrenyuk.io.Log;
-import sergey.lavrenyuk.neural.network.NeuralNetwork;
-import sergey.lavrenyuk.neural.network.WeightMatrix;
-import sergey.lavrenyuk.test.TestSupport;
+import sergey.lavrenyuk.io.data.WeightMatrixIO;
+import sergey.lavrenyuk.nn.NeuralNetwork;
+import sergey.lavrenyuk.nn.Score;
+import sergey.lavrenyuk.nn.WeightMatrix;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -22,7 +23,11 @@ import static sergey.lavrenyuk.geometry.GeometryUtils.toNormalizedMovement;
 
 public class MyRobot extends AdvancedRobot {
 
-    private final AtomicBoolean initialized = new AtomicBoolean(false);
+    private static final AtomicBoolean staticInitialized = new AtomicBoolean(false);
+    private static WeightMatrixIO weightMatrixQueue;
+    private static Score.Builder scoreBuilder;
+
+    private final AtomicBoolean instanceInitialized = new AtomicBoolean(false);
 
     // can not be instantiated here as final, but using upper case as a style convention
     private double MAX_ENERGY;
@@ -42,14 +47,22 @@ public class MyRobot extends AdvancedRobot {
     public void run() {
         IO.initialize(() -> out, this::getDataFile);
 
+        int roundsPerMatrix = 0; // read data from property file
+
+        if (!staticInitialized.get()) {
+            weightMatrixQueue = new WeightMatrixIO(null, roundsPerMatrix); // read data from property file
+            scoreBuilder = Score.builder();
+            staticInitialized.set(true);
+        }
+
+        neuralNetwork = new NeuralNetwork(weightMatrixQueue.read());
+
         MAX_ENERGY = getEnergy();
         BATTLE_FIELD_WIDTH = getBattleFieldWidth();
         BATTLE_FIELD_HEIGHT = getBattleFieldHeight();
         ROBOT_SIZE = getWidth(); // the same as getHeight() and should be equal to 36
 
         log = new Log(MyRobot.class);
-
-        neuralNetwork = initializeNeuralNetwork();
 
         // enemy data, which is set to initial rather than real values
         enemyEnergy = getEnergy(); // assume it is the same as ours
@@ -63,18 +76,12 @@ public class MyRobot extends AdvancedRobot {
             log.error("This robot was designed for 1 to 1 battles, behaviour is unpredictable.");
         }
 
-        initialized.set(true);
-    }
-
-    private NeuralNetwork initializeNeuralNetwork() {
-        return new NeuralNetwork(new WeightMatrix(
-                TestSupport.randomWeights(WeightMatrix.HIDDEN_NEURONS, WeightMatrix.INPUT_NEURONS + 1, 1),
-                TestSupport.randomWeights(WeightMatrix.OUTPUT_NEURONS, WeightMatrix.HIDDEN_NEURONS + 1, 1)));
+        instanceInitialized.set(true);
     }
 
     @Override
     public void onStatus(StatusEvent statusEvent) {
-        if (!initialized.get()) {
+        if (!instanceInitialized.get()) {
             return;
         }
 

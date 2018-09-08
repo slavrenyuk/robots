@@ -1,7 +1,7 @@
 package sergey.lavrenyuk.test;
 
-import sergey.lavrenyuk.neural.network.NeuralNetwork;
-import sergey.lavrenyuk.neural.network.WeightMatrix;
+import sergey.lavrenyuk.nn.NeuralNetwork;
+import sergey.lavrenyuk.nn.WeightMatrix;
 
 import java.util.Arrays;
 

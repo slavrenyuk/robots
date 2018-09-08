@@ -1,8 +1,10 @@
-package sergey.lavrenyuk.neural.network;
+package sergey.lavrenyuk.nn;
 
 import java.util.Objects;
 
 public class ScoredWeightMatrix {
+
+    public static final int SIZE_IN_BYTES = Score.SIZE_IN_BYTES + WeightMatrix.SIZE_IN_BYTES;
 
     private final Score score;
     private final WeightMatrix weightMatrix;

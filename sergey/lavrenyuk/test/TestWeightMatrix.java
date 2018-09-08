@@ -1,6 +1,6 @@
 package sergey.lavrenyuk.test;
 
-import sergey.lavrenyuk.neural.network.WeightMatrix;
+import sergey.lavrenyuk.nn.WeightMatrix;
 
 public class TestWeightMatrix extends TestSupport {
 

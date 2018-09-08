@@ -1,17 +1,21 @@
-package sergey.lavrenyuk.io;
+package sergey.lavrenyuk.io.data;
+
+import sergey.lavrenyuk.io.IO;
 
 import java.io.File;
+import java.util.Iterator;
+import java.util.function.Supplier;
 
-public class PatternFiles {
+public class PartitionedFiles {
 
     public static final String PLACEHOLDER = "{}";
 
-    public static class Supplier implements java.util.function.Supplier<File> {
+    public static class FileSupplier implements Supplier<File> {
 
         private final String filePattern;
         private int index;
 
-        public Supplier(String filePattern) {
+        public FileSupplier(String filePattern) {
             if (!filePattern.contains(PLACEHOLDER)) {
                 throw new IllegalArgumentException(String.format("file pattern must contain %s placeholder", PLACEHOLDER));
             }
@@ -25,13 +29,13 @@ public class PatternFiles {
         }
     }
 
-    public static class Iterator implements java.util.Iterator<File> {
+    public static class FileIterator implements Iterator<File> {
 
-        private final Supplier supplier;
+        private final FileSupplier supplier;
         private File nextFile;
 
-        public Iterator(String filePattern) {
-            supplier = new Supplier(filePattern);
+        public FileIterator(String filePattern) {
+            supplier = new FileSupplier(filePattern);
             nextFile = supplier.get();
         }
 
