@@ -3,13 +3,14 @@ package sergey.lavrenyuk.test;
 import sergey.lavrenyuk.io.data.PartitionedFiles;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Iterator;
 import java.util.function.Supplier;
 
-public class TestPartitionedFiles extends TestSupport {
+public class TestPartitionedFiles extends Test {
 
     public static void main(String[] args) {
-        run(new TestPartitionedFiles());
+        new TestPartitionedFiles().run();
     }
 
     public void testFileSupplierWithoutPlaceholder() {
@@ -23,18 +24,18 @@ public class TestPartitionedFiles extends TestSupport {
     }
 
     public void testFileSupplier() {
-        Supplier<File> supplier = new PartitionedFiles.FileSupplier("test/abc{}.dat");
-        assertCondition(supplier.get().getAbsolutePath().contains("test/abc0.dat"));
-        assertCondition(supplier.get().getAbsolutePath().contains("test/abc1.dat"));
+        Supplier<File> supplier = new PartitionedFiles.FileSupplier("abc{}.dat");
+        assertCondition(supplier.get().getAbsolutePath().contains("abc0.dat"));
+        assertCondition(supplier.get().getAbsolutePath().contains("abc1.dat"));
     }
 
-    public void testFileIterator() {
-        Iterator<File> iterator = new PartitionedFiles.FileIterator("test/empty{}.dat");
+    public void testFileIterator() throws IOException {
+        withFiles("empty0.dat", "empty1.dat");
+        Iterator<File> iterator = new PartitionedFiles.FileIterator("empty{}.dat");
         assertCondition(iterator.hasNext());
-        assertCondition(iterator.next().getAbsolutePath().contains("test/empty0.dat"));
+        assertCondition(iterator.next().getAbsolutePath().contains("empty0.dat"));
         assertCondition(iterator.hasNext());
-        assertCondition(iterator.next().getAbsolutePath().contains("test/empty1.dat"));
+        assertCondition(iterator.next().getAbsolutePath().contains("empty1.dat"));
         assertCondition(!iterator.hasNext());
     }
-
 }

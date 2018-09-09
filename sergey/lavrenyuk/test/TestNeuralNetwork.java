@@ -1,20 +1,19 @@
 package sergey.lavrenyuk.test;
 
 import sergey.lavrenyuk.nn.NeuralNetwork;
+import sergey.lavrenyuk.nn.RandomWeightMatrixGenerator;
 import sergey.lavrenyuk.nn.WeightMatrix;
 
 import java.util.Arrays;
 
-public class TestNeuralNetwork extends TestSupport {
+public class TestNeuralNetwork extends Test {
 
     public static void main(String[] args) {
-        run(new TestNeuralNetwork());
+        new TestNeuralNetwork().run();
     }
 
     public void testProcessNotFails() {
-        NeuralNetwork neuralNetwork = new NeuralNetwork(new WeightMatrix(
-                randomWeights(WeightMatrix.HIDDEN_NEURONS, WeightMatrix.INPUT_NEURONS + 1, 100),
-                randomWeights(WeightMatrix.OUTPUT_NEURONS, WeightMatrix.HIDDEN_NEURONS + 1, 100)));
+        NeuralNetwork neuralNetwork = new NeuralNetwork(new RandomWeightMatrixGenerator().next());
         float[] input = new float[WeightMatrix.INPUT_NEURONS];
         Arrays.fill(input, 0.5f);
 

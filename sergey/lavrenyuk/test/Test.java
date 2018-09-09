@@ -1,44 +1,57 @@
 package sergey.lavrenyuk.test;
 
-import sergey.lavrenyuk.MyRobot;
 import sergey.lavrenyuk.io.IO;
 
 import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.Method;
-import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
-import java.util.Random;
 
-public class TestSupport {
+public class Test {
 
-    public static final Random RANDOM = new Random();
+    private List<File> testFiles;
 
-    public static final Class<?> ROBOT_CLASS = MyRobot.class;
+    public void run() {
+        Class<? extends Test> testClass = getClass();
+        String className = testClass.getSimpleName();
 
-    public static final String DATA_DIRECTORY = ROBOT_CLASS.getName().replace(".", "/") + ".data/";
+        File testDataFolder = new File(testClass.getResource(".").getPath() + className + ".data");
+        boolean testDataFolderCreated = testDataFolder.mkdir();
 
-    public static void run(Object testInstance) {
+        String baseDir = testDataFolder.getAbsolutePath() + "/";
+        IO.initialize(() -> System.out, fileName -> new File(baseDir + fileName));
 
-        IO.initialize(
-                () -> System.out,
-                fileName -> {
-                    String dataDirectoryFilePath = DATA_DIRECTORY + fileName;
-                    // absent fileUrl means there is no such file, but we want to return a File instance anyway
-                    Optional<URL> fileUrl = Optional.ofNullable(testInstance.getClass().getResource(dataDirectoryFilePath));
-                    return fileUrl.map(url -> new File(url.getPath())).orElse(new File(dataDirectoryFilePath));
-                }
-        );
-
-        for (Method method : testInstance.getClass().getMethods()) {
+        for (Method method : testClass.getMethods()) {
             if (method.getName().startsWith("test")) {
                 try {
                     System.out.println("\nRunning " + method.getName());
-                    method.invoke(testInstance);
+
+                    testFiles = new ArrayList<>();
+                    method.invoke(this);
+
                     System.out.println("Success!");
                 } catch (ReflectiveOperationException ex) {
                     System.out.println("Failed:");
                     Optional.ofNullable(ex.getCause()).orElse(ex).printStackTrace(System.out);
+                } finally {
+                    testFiles.forEach(File::delete);
                 }
+            }
+        }
+
+        if (testDataFolderCreated) {
+            testDataFolder.delete();
+        }
+    }
+
+    protected void withFiles(String... fileNames) throws IOException {
+        for (String fileName : fileNames) {
+            File testFile = IO.getFile(fileName);
+            if (testFile.createNewFile()) {
+                // add and later delete only those files that where created inside of this method
+                this.testFiles.add(testFile);
             }
         }
     }
@@ -68,15 +81,5 @@ public class TestSupport {
                         exceptionClass.getName(), exceptionMessage, ex.getClass().getName(), ex.getMessage()));
             }
         }
-    }
-
-    public static float[][] randomWeights(int m, int n, int multiplier) {
-        float[][] result = new float[m][n];
-        for (int i = 0; i < m; i++) {
-            for (int j = 0; j < n; j++) {
-                result[i][j] = (RANDOM.nextBoolean() ? 1 : -1) * RANDOM.nextFloat() * multiplier;
-            }
-        }
-        return result;
     }
 }

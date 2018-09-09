@@ -1,20 +1,21 @@
 package sergey.lavrenyuk.test;
 
 import sergey.lavrenyuk.io.Serializer;
+import sergey.lavrenyuk.nn.RandomWeightMatrixGenerator;
 import sergey.lavrenyuk.nn.Score;
 import sergey.lavrenyuk.nn.ScoredWeightMatrix;
 import sergey.lavrenyuk.nn.WeightMatrix;
 
-public class TestSerializer extends TestSupport {
+public class TestSerializer extends Test {
+
+    private final RandomWeightMatrixGenerator generator = new RandomWeightMatrixGenerator();
 
     public static void main(String[] args) {
-        run(new TestSerializer());
+        new TestSerializer().run();
     }
 
     public void testWeightMatrixSerialization() {
-        WeightMatrix wm = new WeightMatrix(
-                randomWeights(WeightMatrix.HIDDEN_NEURONS, WeightMatrix.INPUT_NEURONS + 1, 100),
-                randomWeights(WeightMatrix.OUTPUT_NEURONS, WeightMatrix.HIDDEN_NEURONS + 1, 100));
+        WeightMatrix wm = generator.next();
         WeightMatrix wm2 = Serializer.deserializeWeightMatrix(Serializer.serializeWeightMatrix(wm));
         assertCondition(wm.equals(wm2));
     }
@@ -25,9 +26,7 @@ public class TestSerializer extends TestSupport {
                 .addRoundResult(true, 35.0f)
                 .addRoundResult(false, -50.0f)
                 .build();
-        WeightMatrix weightMatrix = new WeightMatrix(
-                randomWeights(WeightMatrix.HIDDEN_NEURONS, WeightMatrix.INPUT_NEURONS + 1, 100),
-                randomWeights(WeightMatrix.OUTPUT_NEURONS, WeightMatrix.HIDDEN_NEURONS + 1, 100));
+        WeightMatrix weightMatrix = generator.next();
 
         ScoredWeightMatrix swm = new ScoredWeightMatrix(score, weightMatrix);
         ScoredWeightMatrix swm2 = Serializer.deserializeScoredWeightMatrix(Serializer.serializeScoredWeightMatrix(swm));

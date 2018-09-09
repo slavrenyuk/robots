@@ -25,6 +25,19 @@ public class Config {
         return getProperty(PROPERTIES, key, Integer::valueOf, defaultValue);
     }
 
+    public static String getString(String key) {
+        return getProperty(PROPERTIES, key, s -> s);
+    }
+
+    public static boolean getBoolean(String key) {
+        return getProperty(PROPERTIES, key, Boolean::valueOf);
+    }
+
+    public static int getInteger(String key) {
+        return getProperty(PROPERTIES, key, Integer::valueOf);
+    }
+
+
     private static Properties loadProperties(String fileName) {
         File file = IO.getFile(fileName);
         if (!file.exists()) {
@@ -44,5 +57,12 @@ public class Config {
         return Optional.ofNullable(properties.getProperty(key))
                 .map(parseFunction)
                 .orElse(defaultValue);
+    }
+
+
+    private static  <T> T getProperty(Properties properties, String key, Function<String, T> parseFunction) {
+        return Optional.ofNullable(properties.getProperty(key))
+                .map(parseFunction)
+                .orElseThrow(() -> new AssertionError(String.format("Property %s not found", key)));
     }
 }

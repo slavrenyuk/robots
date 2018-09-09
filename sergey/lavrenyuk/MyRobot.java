@@ -1,20 +1,25 @@
 package sergey.lavrenyuk;
 
 import robocode.AdvancedRobot;
+import robocode.BattleEndedEvent;
 import robocode.RobotStatus;
+import robocode.RoundEndedEvent;
 import robocode.Rules;
 import robocode.ScannedRobotEvent;
 import robocode.StatusEvent;
 import robocode.util.Utils;
 import sergey.lavrenyuk.geometry.Data2D;
+import sergey.lavrenyuk.io.Config;
 import sergey.lavrenyuk.io.IO;
 import sergey.lavrenyuk.io.Log;
-import sergey.lavrenyuk.io.data.WeightMatrixIO;
 import sergey.lavrenyuk.nn.NeuralNetwork;
+import sergey.lavrenyuk.nn.NeuralNetworkMode;
+import sergey.lavrenyuk.nn.RoundResultConsumer;
 import sergey.lavrenyuk.nn.Score;
 import sergey.lavrenyuk.nn.WeightMatrix;
 
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Supplier;
 
 import static sergey.lavrenyuk.geometry.GeometryUtils.calculateCoordinates;
 import static sergey.lavrenyuk.geometry.GeometryUtils.toBottomLeftBasedCoordinate;
@@ -24,8 +29,8 @@ import static sergey.lavrenyuk.geometry.GeometryUtils.toNormalizedMovement;
 public class MyRobot extends AdvancedRobot {
 
     private static final AtomicBoolean staticInitialized = new AtomicBoolean(false);
-    private static WeightMatrixIO weightMatrixQueue;
-    private static Score.Builder scoreBuilder;
+    private static Supplier<WeightMatrix> weightMatrixSupplier;
+    private static RoundResultConsumer roundResultConsumer;
 
     private final AtomicBoolean instanceInitialized = new AtomicBoolean(false);
 
@@ -47,15 +52,13 @@ public class MyRobot extends AdvancedRobot {
     public void run() {
         IO.initialize(() -> out, this::getDataFile);
 
-        int roundsPerMatrix = 0; // read data from property file
-
         if (!staticInitialized.get()) {
-            weightMatrixQueue = new WeightMatrixIO(null, roundsPerMatrix); // read data from property file
-            scoreBuilder = Score.builder();
+            NeuralNetworkMode neuralNetworkMode = new NeuralNetworkMode(Config.getString("neuralNetwork.mode"));
+            weightMatrixSupplier = neuralNetworkMode.getWeightMatrixSupplier();
+            roundResultConsumer = neuralNetworkMode.getRoundResultConsumer();
+
             staticInitialized.set(true);
         }
-
-        neuralNetwork = new NeuralNetwork(weightMatrixQueue.read());
 
         MAX_ENERGY = getEnergy();
         BATTLE_FIELD_WIDTH = getBattleFieldWidth();
@@ -63,6 +66,8 @@ public class MyRobot extends AdvancedRobot {
         ROBOT_SIZE = getWidth(); // the same as getHeight() and should be equal to 36
 
         log = new Log(MyRobot.class);
+
+        neuralNetwork = new NeuralNetwork(weightMatrixSupplier.get());
 
         // enemy data, which is set to initial rather than real values
         enemyEnergy = getEnergy(); // assume it is the same as ours
@@ -77,6 +82,19 @@ public class MyRobot extends AdvancedRobot {
         }
 
         instanceInitialized.set(true);
+    }
+
+    @Override
+    public void onRoundEnded(RoundEndedEvent event) {
+        enemyEnergy = getOthers() > 0 ? enemyEnergy : 0.0;
+        roundResultConsumer.accept(new Score.RoundResult(
+                getOthers() == 0 && getEnergy() > 0.0,
+                (float) (getEnergy() - enemyEnergy)));
+    }
+
+    @Override
+    public void onBattleEnded(BattleEndedEvent event) {
+        roundResultConsumer.close();
     }
 
     @Override

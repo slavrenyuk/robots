@@ -52,10 +52,33 @@ public class Score implements Comparable<Score> {
         return Objects.hash(winRate, averageEnergyDiff);
     }
 
+    public static class RoundResult {
+
+        private final boolean win;
+        private final float energyDiff;
+
+        public RoundResult(boolean win, float energyDiff) {
+            this.win = win;
+            this.energyDiff = energyDiff;
+        }
+
+        public boolean isWin() {
+            return win;
+        }
+
+        public float getEnergyDiff() {
+            return energyDiff;
+        }
+    }
+
     public static class Builder {
 
         private int wins = 0;
         private List<Float> energyDiffs = new ArrayList<>();
+
+        public Builder addRoundResult(RoundResult roundResult) {
+            return addRoundResult(roundResult.isWin(), roundResult.getEnergyDiff());
+        }
 
         public Builder addRoundResult(boolean win, float energyDiff) {
             if (win) {

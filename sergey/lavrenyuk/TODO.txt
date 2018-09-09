@@ -1,2 +1,2 @@
-1. add some neural network test which will verify input / output on a huge matrix
-2. add tests for partitioned file input and output
+1. add tests for partitioned file input and output, weight matrix scorer and neural network mode
+2. manual testing of the robot
