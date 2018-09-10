@@ -1,0 +1,36 @@
+Enemy for the first generation is VelociRobot
+
+Battle results with 10000 rounds, random matrices and different matrixMaxAbsWeight values.
+Summary:
+matrixMaxAbsWeight,     winPercentage
+1,                      16.75%
+10,                     6.99%
+100,                    5.56%
+1000,                   5.57%
+10000,                  5.57%
+
+Details:
+matrixMaxAbsWeight = 1
+Rank,   Robot Name,     Total Score,    Survived,   Survival,   Surv Bonus, Bullet Dmg, Bullet Bonus,   Ram Dmg * 2,    Ram Bonus,  1sts,   2nds
+1st,    VelociRobot,    1021611 (78%),  7623,       381150,     76230,      427373,     68843,          59036,          8978,       8325,   1675
+2nd,    MyRobot,        284795 (22%),   1675,       83750,      16750,      109119,     4473,           69474,          1229,       2377,   7623
+
+matrixMaxAbsWeight = 10
+Rank,   Robot Name,     Total Score,    Survived,   Survival,   Surv Bonus, Bullet Dmg, Bullet Bonus,   Ram Dmg * 2,    Ram Bonus,  1sts,   2nds
+1st,    VelociRobot,    1015136 (88%),  8513,       425650,     85130,      378494,     67613,          50984,          7264,       9301,   699
+2nd,    MyRobot,        136721 (12%),   699,        34950,      6990,       37687,      153,            56654,          287,        1487,   8513
+
+matrixMaxAbsWeight = 100
+Rank,   Robot Name,     Total Score,    Survived,   Survival,   Surv Bonus, Bullet Dmg, Bullet Bonus,   Ram Dmg * 2,    Ram Bonus,  1sts,   2nds
+1st,    VelociRobot,    1000371 (89%),  8589,       429450,     85890,      363837,     66244,          48409,          6541,       9444,   556
+2nd,    MyRobot,        125378 (11%),   556,        27800,      5560,       38937,      171,            52777,          133,        1411,   8589
+
+matrixMaxAbsWeight = 1000
+Rank,   Robot Name,     Total Score,    Survived,   Survival,   Surv Bonus, Bullet Dmg, Bullet Bonus,   Ram Dmg * 2,    Ram Bonus,  1sts,   2nds
+1st,    VelociRobot,    1002930 (89%),  8611,       430550,     86110,      364008,     66054,          49498,          6710,       9443,   557
+2nd,    MyRobot,        129416 (11%),   557,        27850,      5570,       41224,      90,             54422,          260,        1389,   8611
+
+matrixMaxAbsWeight = 10000
+Rank,   Robot Name,     Total Score,    Survived,   Survival,   Surv Bonus, Bullet Dmg, Bullet Bonus,   Ram Dmg * 2,    Ram Bonus,  1sts,   2nds
+1st,    VelociRobot,    1005016 (89%),  8654,       432250,     86450,      364451,     66516,          48574,          6775,       9443,   557
+2nd,    MyRobot,        125083 (11%),   557,        27850,      5570,       38096,      128,            53244,          196,        1355,   8645
