@@ -2,9 +2,13 @@ package sergey.lavrenyuk.nn;
 
 import sergey.lavrenyuk.io.Config;
 import sergey.lavrenyuk.io.data.WeightMatrixScorer;
+import sergey.lavrenyuk.io.data.WeightMatrixScorerImpl;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 public class NeuralNetworkMode {
 
@@ -17,11 +21,13 @@ public class NeuralNetworkMode {
 
     public NeuralNetworkMode(String mode) {
         if (RANDOM.equals(mode)) {
+            Supplier<Integer> maxAbsWeightSupplier =
+                    createIntGeneratorFromString(Config.getString("neuralNetwork.matrixMaxAbsWeight", "1"));
             RandomWeightMatrixGenerator generator = new RandomWeightMatrixGenerator();
-            this.weightMatrixSupplier = generator::next;
+            this.weightMatrixSupplier = () -> generator.next(maxAbsWeightSupplier.get());
             this.roundResultConsumer = new NoOpResultConsumer();
         } else if (TRAINING.equals(mode)) {
-            WeightMatrixScorer weightMatrixScorer = new WeightMatrixScorer(
+            WeightMatrixScorer weightMatrixScorer = new WeightMatrixScorerImpl(
                     Config.getString("scorer.inputFilePattern"),
                     Config.getString("scorer.outputFilePattern"),
                     Config.getInteger("scorer.startFileIndex", 0),
@@ -43,6 +49,17 @@ public class NeuralNetworkMode {
 
     public RoundResultConsumer getRoundResultConsumer() {
         return roundResultConsumer;
+    }
+
+    public static Supplier<Integer> createIntGeneratorFromString(String str) {
+        Integer[] intArray = Arrays
+                .stream(str.split(","))
+                .map(String::trim)
+                .map(Integer::valueOf)
+                .collect(Collectors.toList())
+                .toArray(new Integer[0]);
+        AtomicInteger index = new AtomicInteger(0);
+        return () -> intArray[index.getAndUpdate(i -> ++i < intArray.length ? i : 0)];
     }
 
     public static class NoOpResultConsumer implements RoundResultConsumer {

@@ -1,2 +1,2 @@
-1. add tests for partitioned file input and output, weight matrix scorer and neural network mode
+1. add tests for WeightMatrixScorer and RawDataReaderWriter
 2. manual testing of the robot

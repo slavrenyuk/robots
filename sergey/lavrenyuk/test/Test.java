@@ -46,7 +46,8 @@ public class Test {
         }
     }
 
-    protected void withFiles(String... fileNames) throws IOException {
+    // files that will be automatically created before and deleted after test execution
+    protected void withTempFiles(String... fileNames) throws IOException {
         for (String fileName : fileNames) {
             File testFile = IO.getFile(fileName);
             if (testFile.createNewFile()) {

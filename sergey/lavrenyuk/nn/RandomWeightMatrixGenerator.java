@@ -6,7 +6,6 @@ public class RandomWeightMatrixGenerator {
 
     private final Random RANDOM = new Random();
 
-
     public WeightMatrix next() {
         return next(1);
     }
