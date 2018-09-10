@@ -1,4 +1,4 @@
-package sergey.lavrenyuk.nn;
+package sergey.lavrenyuk.nn.score;
 
 public interface RoundResultConsumer {
 

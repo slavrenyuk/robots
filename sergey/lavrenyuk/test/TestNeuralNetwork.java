@@ -20,7 +20,6 @@ public class TestNeuralNetwork extends Test {
         neuralNetwork.process(input);
     }
 
-
     public void testProcessWithSmallMatrix() {
         int inputNeurons = 2;
         int hiddenNeurons = 2;

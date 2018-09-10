@@ -1,14 +1,13 @@
 package sergey.lavrenyuk.nn;
 
 import sergey.lavrenyuk.io.Config;
-import sergey.lavrenyuk.io.data.WeightMatrixScorer;
-import sergey.lavrenyuk.io.data.WeightMatrixScorerImpl;
+import sergey.lavrenyuk.nn.score.RoundResultConsumer;
+import sergey.lavrenyuk.nn.score.Score;
+import sergey.lavrenyuk.nn.score.WeightMatrixScorer;
 
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
 public class NeuralNetworkMode {
 
@@ -27,15 +26,14 @@ public class NeuralNetworkMode {
             this.weightMatrixSupplier = () -> generator.next(maxAbsWeightSupplier.get());
             this.roundResultConsumer = new NoOpResultConsumer();
         } else if (TRAINING.equals(mode)) {
-            WeightMatrixScorer weightMatrixScorer = new WeightMatrixScorerImpl(
+            WeightMatrixScorer weightMatrixScorer = WeightMatrixScorer.create(
                     Config.getString("scorer.inputFilePattern"),
                     Config.getString("scorer.outputFilePattern"),
                     Config.getInteger("scorer.startFileIndex", 0),
                     Config.getInteger("scorer.roundsPerMatrix"),
                     true);
-            TrainingSupplierAndConsumer trainingSupplierAndConsumer = new TrainingSupplierAndConsumer(weightMatrixScorer);
-            this.weightMatrixSupplier = trainingSupplierAndConsumer;
-            this.roundResultConsumer = trainingSupplierAndConsumer;
+            this.weightMatrixSupplier = weightMatrixScorer;
+            this.roundResultConsumer = weightMatrixScorer;
         } else if (FIGHTING.equals(mode)) {
             throw new UnsupportedOperationException();
         } else {
@@ -56,8 +54,7 @@ public class NeuralNetworkMode {
                 .stream(str.split(","))
                 .map(String::trim)
                 .map(Integer::valueOf)
-                .collect(Collectors.toList())
-                .toArray(new Integer[0]);
+                .toArray(Integer[]::new);
         AtomicInteger index = new AtomicInteger(0);
         return () -> intArray[index.getAndUpdate(i -> ++i < intArray.length ? i : 0)];
     }
@@ -69,47 +66,5 @@ public class NeuralNetworkMode {
 
         @Override
         public void close() { }
-    }
-
-    public static class TrainingSupplierAndConsumer implements Supplier<WeightMatrix>, RoundResultConsumer {
-
-        private final WeightMatrixScorer weightMatrixScorer;
-        private Score.Builder scoreBuilder = Score.builder();
-
-        public TrainingSupplierAndConsumer(WeightMatrixScorer weightMatrixScorer) {
-            this.weightMatrixScorer = weightMatrixScorer;
-        }
-
-        @Override
-        public WeightMatrix get() {
-            try {
-                return weightMatrixScorer.read();
-            } catch (IOException ex) {
-                throw new RuntimeException(ex);
-            }
-        }
-
-        @Override
-        public void accept(Score.RoundResult roundResult) {
-            scoreBuilder.addRoundResult(roundResult);
-            if (weightMatrixScorer.isWriteExpected()) {
-                try {
-                    weightMatrixScorer.write(
-                            new ScoredWeightMatrix(scoreBuilder.build(), weightMatrixScorer.getCurrentMatrix()));
-                    scoreBuilder = Score.builder();
-                } catch (IOException ex) {
-                    throw new RuntimeException(ex);
-                }
-            }
-        }
-
-        @Override
-        public void close() {
-            try {
-                weightMatrixScorer.close();
-            } catch (IOException ex) {
-                throw new RuntimeException(ex);
-            }
-        }
     }
 }

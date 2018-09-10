@@ -1,4 +1,4 @@
-package sergey.lavrenyuk.nn;
+package sergey.lavrenyuk.nn.score;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -50,6 +50,14 @@ public class Score implements Comparable<Score> {
     @Override
     public int hashCode() {
         return Objects.hash(winRate, averageEnergyDiff);
+    }
+
+    @Override
+    public String toString() {
+        return "Score{" +
+                "winRate=" + winRate +
+                ", averageEnergyDiff=" + averageEnergyDiff +
+                '}';
     }
 
     public static class RoundResult {

@@ -14,8 +14,8 @@ import sergey.lavrenyuk.io.IO;
 import sergey.lavrenyuk.io.Log;
 import sergey.lavrenyuk.nn.NeuralNetwork;
 import sergey.lavrenyuk.nn.NeuralNetworkMode;
-import sergey.lavrenyuk.nn.RoundResultConsumer;
-import sergey.lavrenyuk.nn.Score;
+import sergey.lavrenyuk.nn.score.RoundResultConsumer;
+import sergey.lavrenyuk.nn.score.Score;
 import sergey.lavrenyuk.nn.WeightMatrix;
 
 import java.util.concurrent.atomic.AtomicBoolean;

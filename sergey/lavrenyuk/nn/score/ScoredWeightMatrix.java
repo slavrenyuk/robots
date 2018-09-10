@@ -1,4 +1,6 @@
-package sergey.lavrenyuk.nn;
+package sergey.lavrenyuk.nn.score;
+
+import sergey.lavrenyuk.nn.WeightMatrix;
 
 import java.util.Objects;
 

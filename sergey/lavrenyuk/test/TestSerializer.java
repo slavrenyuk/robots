@@ -2,8 +2,8 @@ package sergey.lavrenyuk.test;
 
 import sergey.lavrenyuk.io.Serializer;
 import sergey.lavrenyuk.nn.RandomWeightMatrixGenerator;
-import sergey.lavrenyuk.nn.Score;
-import sergey.lavrenyuk.nn.ScoredWeightMatrix;
+import sergey.lavrenyuk.nn.score.Score;
+import sergey.lavrenyuk.nn.score.ScoredWeightMatrix;
 import sergey.lavrenyuk.nn.WeightMatrix;
 
 public class TestSerializer extends Test {
