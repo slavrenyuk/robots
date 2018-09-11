@@ -6,7 +6,6 @@ import sergey.lavrenyuk.io.data.Writer;
 import sergey.lavrenyuk.nn.WeightMatrix;
 
 import java.io.IOException;
-import java.util.Optional;
 import java.util.function.Supplier;
 
 public class WeightMatrixScorer implements Supplier<WeightMatrix>, RoundResultConsumer {
@@ -83,10 +82,10 @@ public class WeightMatrixScorer implements Supplier<WeightMatrix>, RoundResultCo
 
     private WeightMatrix read() {
         try {
-            return Optional
-                    .ofNullable(dataReader.read())
-                    .map(Serializer::deserializeWeightMatrix)
-                    .orElse(null);
+            byte[] data = dataReader.read();
+            return data.length != 0
+                    ? Serializer.deserializeWeightMatrix(data)
+                    : null;
         } catch (IOException ex) {
             throw new RuntimeException(ex);
         }

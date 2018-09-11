@@ -1,2 +1,1 @@
-1. add tests for WeightMatrixScorer and RawDataReaderWriter
-2. manual testing of the robot
+1. manual testing of the robot training - verify it reads weight matrices and scores them as expected

@@ -1,7 +1,6 @@
 package sergey.lavrenyuk.test;
 
 import sergey.lavrenyuk.nn.NeuralNetwork;
-import sergey.lavrenyuk.nn.RandomWeightMatrixGenerator;
 import sergey.lavrenyuk.nn.WeightMatrix;
 
 import java.util.Arrays;
@@ -13,7 +12,7 @@ public class TestNeuralNetwork extends Test {
     }
 
     public void testProcessNotFails() {
-        NeuralNetwork neuralNetwork = new NeuralNetwork(new RandomWeightMatrixGenerator().next());
+        NeuralNetwork neuralNetwork = new NeuralNetwork(randomMatrix());
         float[] input = new float[WeightMatrix.INPUT_NEURONS];
         Arrays.fill(input, 0.5f);
 

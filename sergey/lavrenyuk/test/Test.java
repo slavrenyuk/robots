@@ -1,15 +1,53 @@
 package sergey.lavrenyuk.test;
 
 import sergey.lavrenyuk.io.IO;
+import sergey.lavrenyuk.nn.RandomWeightMatrixGenerator;
+import sergey.lavrenyuk.nn.WeightMatrix;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
 public class Test {
+
+    // ==============================================================================================================
+    // Section for running all tests from subclasses
+
+    private static final List<Class<? extends Test>> SUBCLASSES = Arrays.asList(
+            TestNeuralNetwork.class,
+            TestNeuralNetworkMode.class,
+            TestWeightMatrix.class,
+            TestWeightMatrixScorer.class,
+            TestWeightMatrixScorerRawDataIO.class,
+            TestPartitionedFiles.class,
+            TestSerializer.class
+    );
+
+    public static void main(String[] args) {
+        for (Class<? extends Test> subclass : SUBCLASSES) {
+            System.out.println("====================================================================================");
+            System.out.println(subclass.getName());
+            try {
+                Test subclassTest = subclass.newInstance();
+                subclassTest.run();
+
+            } catch (ReflectiveOperationException ex) {
+                throw new RuntimeException(ex);
+            }
+            System.out.println();
+        }
+    }
+
+    // ==============================================================================================================
+    // Section for running test methods of a subclass
+    //  Method is considered as test if it has "test" at the beginning of its name
+
+    private static final RandomWeightMatrixGenerator matrixGenerator = new RandomWeightMatrixGenerator();
 
     private List<File> testFiles;
 
@@ -46,16 +84,26 @@ public class Test {
         }
     }
 
-    // files that will be automatically created before and deleted after test execution
-    protected void withTempFiles(String... fileNames) throws IOException {
-        for (String fileName : fileNames) {
-            File testFile = IO.getFile(fileName);
-            if (testFile.createNewFile()) {
-                // add and later delete only those files that where created inside of this method
-                this.testFiles.add(testFile);
-            }
+    protected void withTestFile(String fileName, byte[] fileData, boolean deleteOnExit) throws IOException {
+        File testFile = IO.getFile(fileName);
+        FileOutputStream out = new FileOutputStream(testFile);
+        out.write(fileData);
+        if (deleteOnExit) {
+            this.testFiles.add(testFile);
         }
     }
+
+    // files that will be automatically created before and deleted after test execution
+    protected void withTestFiles(String... fileNames) throws IOException {
+        for (String fileName : fileNames) {
+            File testFile = IO.getFile(fileName);
+            testFile.createNewFile();
+            this.testFiles.add(testFile);
+        }
+    }
+
+    // ==============================================================================================================
+    // Section that provides utility methods for testing
 
     public static void assertCondition(boolean condition) {
         if (!condition) {
@@ -82,5 +130,9 @@ public class Test {
                         exceptionClass.getName(), exceptionMessage, ex.getClass().getName(), ex.getMessage()));
             }
         }
+    }
+
+    public static WeightMatrix randomMatrix() {
+        return matrixGenerator.next();
     }
 }

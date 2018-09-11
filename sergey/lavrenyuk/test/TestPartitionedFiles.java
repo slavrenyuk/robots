@@ -30,7 +30,7 @@ public class TestPartitionedFiles extends Test {
     }
 
     public void testFileIterator() throws IOException {
-        withTempFiles("empty0.dat", "empty1.dat");
+        withTestFiles("empty0.dat", "empty1.dat");
         Iterator<File> iterator = new PartitionedFiles.FileIterator("empty{}.dat");
         assertCondition(iterator.hasNext());
         assertCondition(iterator.next().getAbsolutePath().contains("empty0.dat"));

@@ -1,18 +1,11 @@
 package sergey.lavrenyuk.test;
 
-import sergey.lavrenyuk.nn.RandomWeightMatrixGenerator;
 import sergey.lavrenyuk.nn.WeightMatrix;
 
 public class TestWeightMatrix extends Test {
 
-    private final RandomWeightMatrixGenerator generator = new RandomWeightMatrixGenerator();
-
     public static void main(String[] args) {
         new TestWeightMatrix().run();
-    }
-
-    public void testValidArguments() {
-        generator.next(100);
     }
 
     public void testInvalidArgumentsSize() {

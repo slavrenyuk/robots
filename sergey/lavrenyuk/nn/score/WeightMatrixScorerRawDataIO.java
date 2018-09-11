@@ -63,7 +63,7 @@ public class WeightMatrixScorerRawDataIO implements Reader<byte[]>, Writer<byte[
         }
 
         if (!this.inputFilesIterator.hasNext()) {
-            throw new IllegalArgumentException("input files iterator has no elements");
+            throw new IllegalArgumentException("No input files found");
         }
         this.currentInputFileStream = nextInputFile();
         this.currentOutputFileStream = nextOutputFile();
@@ -80,13 +80,13 @@ public class WeightMatrixScorerRawDataIO implements Reader<byte[]>, Writer<byte[
         int bytesRead = currentInputFileStream.read(result);
 
         if (bytesRead == -1) {
+            itemsRead--;
             if (inputFilesIterator.hasNext()) {
                 currentInputFileStream = nextInputFile();
                 openNextOutputFileOnWrite = true;
                 return read();
             }
-            itemsRead--;
-            return null;
+            return new byte[0];
         }
 
         if (bytesRead != inputItemSize) {
