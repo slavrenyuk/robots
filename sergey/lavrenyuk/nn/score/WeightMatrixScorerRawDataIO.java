@@ -63,7 +63,7 @@ public class WeightMatrixScorerRawDataIO implements Reader<byte[]>, Writer<byte[
         }
 
         if (!this.inputFilesIterator.hasNext()) {
-            throw new IllegalArgumentException("No input files found");
+            throw new IllegalArgumentException(String.format("No input files found for pattern %s", inputFilePattern));
         }
         this.currentInputFileStream = nextInputFile();
         this.currentOutputFileStream = nextOutputFile();
