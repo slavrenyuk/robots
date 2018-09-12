@@ -1,15 +1,18 @@
 package sergey.lavrenyuk.test;
 
 import sergey.lavrenyuk.io.MaxValuesStorage;
+import sergey.lavrenyuk.test.base.BaseTest;
 
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
-public class TestMaxValuesStorage extends Test {
+import static sergey.lavrenyuk.test.base.TestUtils.assertCondition;
+
+public class TestMaxValuesStorage extends BaseTest {
 
     public static void main(String[] args) {
-        new TestMaxValuesStorage().run();
+        new TestMaxValuesStorage().runTests();
     }
 
     public void testNotFullStorage() {

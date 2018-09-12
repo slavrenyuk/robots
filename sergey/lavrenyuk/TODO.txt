@@ -1,4 +1,3 @@
 1. manual testing of the robot training - verify it reads weight matrices and scores them as expected
-2. unit tests for PartitionedFileReader and PartitionedFileWriter
-3. add javadocs
-4. add project description to README file
+2. add javadocs
+3. add project description to README file

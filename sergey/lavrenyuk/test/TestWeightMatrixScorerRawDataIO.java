@@ -2,22 +2,28 @@ package sergey.lavrenyuk.test;
 
 import sergey.lavrenyuk.io.IO;
 import sergey.lavrenyuk.nn.score.WeightMatrixScorerRawDataIO;
+import sergey.lavrenyuk.test.base.BaseTest;
 
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Arrays;
 
-public class TestWeightMatrixScorerRawDataIO extends Test {
+import static sergey.lavrenyuk.test.base.TestUtils.assertCondition;
+import static sergey.lavrenyuk.test.base.TestUtils.assertExceptionThrown;
+import static sergey.lavrenyuk.test.base.TestUtils.assertFileContents;
+import static sergey.lavrenyuk.test.base.TestUtils.createTestFile;
+import static sergey.lavrenyuk.test.base.TestUtils.createTestFiles;
+
+public class TestWeightMatrixScorerRawDataIO extends BaseTest {
 
     private final int INPUT_ITEM_SIZE = 3;
     private final int OUTPUT_ITEM_SIZE = 2;
 
     public static void main(String[] args) {
-        new TestWeightMatrixScorerRawDataIO().run();
+        new TestWeightMatrixScorerRawDataIO().runTests();
     }
 
     public void testHappyPath() throws IOException {
-        WeightMatrixScorerRawDataIO rawDataIO = setupAndCreateRawDataIO(false);
+        WeightMatrixScorerRawDataIO rawDataIO = setupAndCreateRawDataIO();
 
         byte[] data = rawDataIO.read();
         assertCondition(Arrays.equals(data, new byte[] {0, 1, 2}));
@@ -42,26 +48,8 @@ public class TestWeightMatrixScorerRawDataIO extends Test {
         assertCondition(!IO.getFile("input_test_file_part0.dat").exists());
         assertCondition(!IO.getFile("input_test_file_part1.dat").exists());
 
-        FileInputStream in = new FileInputStream(IO.getFile("output_test_file_part0.dat"));
-        data = new byte[OUTPUT_ITEM_SIZE];
-        assertCondition(in.read(data) == 2);
-        assertCondition(Arrays.equals(data, new byte[] {1, -1}));
-
-        assertCondition(in.read(data) == 2);
-        assertCondition(Arrays.equals(data, new byte[] {4, -4}));
-
-        assertCondition(in.read(data) == -1);
-        in.close();
-
-        in = new FileInputStream(IO.getFile("output_test_file_part1.dat"));
-        assertCondition(in.read(data) == 2);
-        assertCondition(Arrays.equals(data, new byte[] {7, -7}));
-
-        assertCondition(in.read(data) == 2);
-        assertCondition(Arrays.equals(data, new byte[] {10, -10}));
-
-        assertCondition(in.read(data) == -1);
-        in.close();
+        assertFileContents("output_test_file_part0.dat", new byte[] {1, -1, 4, -4});
+        assertFileContents("output_test_file_part1.dat", new byte[] {7, -7, 10, -10});
     }
 
     public void testNoInputFiles() {
@@ -79,8 +67,8 @@ public class TestWeightMatrixScorerRawDataIO extends Test {
     }
 
     public void testNoEnoughInputFiles() throws IOException {
-        withTestFile("input_test_file_part0.dat", new byte[] {0, 1, 2, 3, 4, 5}, true);
-        withTestFile("input_test_file_part1.dat", new byte[] {6, 7, 8, 9, 10, 11}, true);
+        createTestFile("input_test_file_part0.dat", new byte[] {0, 1, 2, 3, 4, 5});
+        createTestFile("input_test_file_part1.dat", new byte[] {6, 7, 8, 9, 10, 11});
         final int startFileIndex = 3;
         assertExceptionThrown(
                 () -> {
@@ -96,7 +84,7 @@ public class TestWeightMatrixScorerRawDataIO extends Test {
     }
 
     public void testUnexpectedRead() throws IOException {
-        WeightMatrixScorerRawDataIO rawDataIO = setupAndCreateRawDataIO(true);
+        WeightMatrixScorerRawDataIO rawDataIO = setupAndCreateRawDataIO();
         rawDataIO.read();
         assertExceptionThrown(
                 () -> {
@@ -111,7 +99,7 @@ public class TestWeightMatrixScorerRawDataIO extends Test {
     }
 
     public void testUnexpectedWrite() throws IOException {
-        WeightMatrixScorerRawDataIO rawDataIO = setupAndCreateRawDataIO(true);
+        WeightMatrixScorerRawDataIO rawDataIO = setupAndCreateRawDataIO();
         byte[] data = rawDataIO.read();
         rawDataIO.write(process(data));
         assertExceptionThrown(
@@ -135,10 +123,10 @@ public class TestWeightMatrixScorerRawDataIO extends Test {
         return new byte[] {(byte) (sum / INPUT_ITEM_SIZE), (byte) (-sum / INPUT_ITEM_SIZE)};
     }
 
-    private WeightMatrixScorerRawDataIO setupAndCreateRawDataIO(boolean deleteInputFilesOnExit) throws IOException {
-        withTestFile("input_test_file_part0.dat", new byte[] {0, 1, 2, 3, 4, 5}, deleteInputFilesOnExit);
-        withTestFile("input_test_file_part1.dat", new byte[] {6, 7, 8, 9, 10, 11}, deleteInputFilesOnExit);
-        withTestFiles("output_test_file_part0.dat", "output_test_file_part1.dat");
+    private WeightMatrixScorerRawDataIO setupAndCreateRawDataIO() throws IOException {
+        createTestFile("input_test_file_part0.dat", new byte[] {0, 1, 2, 3, 4, 5});
+        createTestFile("input_test_file_part1.dat", new byte[] {6, 7, 8, 9, 10, 11});
+        createTestFiles("output_test_file_part0.dat", "output_test_file_part1.dat");
         return new WeightMatrixScorerRawDataIO("input_test_file_part{}.dat", "output_test_file_part{}.dat",
                 INPUT_ITEM_SIZE, OUTPUT_ITEM_SIZE, 0, false);
 

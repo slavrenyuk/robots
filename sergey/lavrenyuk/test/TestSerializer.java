@@ -4,11 +4,15 @@ import sergey.lavrenyuk.io.Serializer;
 import sergey.lavrenyuk.nn.score.Score;
 import sergey.lavrenyuk.nn.score.ScoredWeightMatrix;
 import sergey.lavrenyuk.nn.WeightMatrix;
+import sergey.lavrenyuk.test.base.BaseTest;
 
-public class TestSerializer extends Test {
+import static sergey.lavrenyuk.test.base.TestUtils.assertCondition;
+import static sergey.lavrenyuk.test.base.TestUtils.randomMatrix;
+
+public class TestSerializer extends BaseTest {
 
     public static void main(String[] args) {
-        new TestSerializer().run();
+        new TestSerializer().runTests();
     }
 
     public void testWeightMatrixSerialization() {

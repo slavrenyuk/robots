@@ -1,16 +1,21 @@
 package sergey.lavrenyuk.test;
 
 import sergey.lavrenyuk.io.data.PartitionedFiles;
+import sergey.lavrenyuk.test.base.BaseTest;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.function.Supplier;
 
-public class TestPartitionedFiles extends Test {
+import static sergey.lavrenyuk.test.base.TestUtils.assertCondition;
+import static sergey.lavrenyuk.test.base.TestUtils.assertExceptionThrown;
+import static sergey.lavrenyuk.test.base.TestUtils.createTestFiles;
+
+public class TestPartitionedFiles extends BaseTest {
 
     public static void main(String[] args) {
-        new TestPartitionedFiles().run();
+        new TestPartitionedFiles().runTests();
     }
 
     public void testFileSupplierWithoutPlaceholder() {
@@ -30,7 +35,7 @@ public class TestPartitionedFiles extends Test {
     }
 
     public void testFileIterator() throws IOException {
-        withTestFiles("empty0.dat", "empty1.dat");
+        createTestFiles("empty0.dat", "empty1.dat");
         Iterator<File> iterator = new PartitionedFiles.FileIterator("empty{}.dat");
         assertCondition(iterator.hasNext());
         assertCondition(iterator.next().getAbsolutePath().contains("empty0.dat"));
