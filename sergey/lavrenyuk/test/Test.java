@@ -25,7 +25,8 @@ public class Test {
             TestWeightMatrixScorer.class,
             TestWeightMatrixScorerRawDataIO.class,
             TestPartitionedFiles.class,
-            TestSerializer.class
+            TestSerializer.class,
+            TestMaxValuesStorage.class
     );
 
     public static void main(String[] args) {
