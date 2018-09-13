@@ -1,8 +1,8 @@
 package sergey.lavrenyuk.nn.score;
 
 import sergey.lavrenyuk.io.Serializer;
-import sergey.lavrenyuk.io.data.Reader;
-import sergey.lavrenyuk.io.data.Writer;
+import sergey.lavrenyuk.io.Reader;
+import sergey.lavrenyuk.io.Writer;
 import sergey.lavrenyuk.nn.WeightMatrix;
 
 import java.io.IOException;

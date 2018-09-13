@@ -1,6 +1,6 @@
 package sergey.lavrenyuk.test;
 
-import sergey.lavrenyuk.io.data.PartitionedFiles;
+import sergey.lavrenyuk.io.PartitionedFiles;
 import sergey.lavrenyuk.test.base.BaseTest;
 
 import java.io.File;

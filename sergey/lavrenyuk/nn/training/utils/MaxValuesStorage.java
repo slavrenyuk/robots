@@ -1,4 +1,4 @@
-package sergey.lavrenyuk.io;
+package sergey.lavrenyuk.nn.training.utils;
 
 import java.util.Arrays;
 import java.util.Collections;

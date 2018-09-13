@@ -1,4 +1,4 @@
-package sergey.lavrenyuk.io.data;
+package sergey.lavrenyuk.io;
 
 import java.io.Closeable;
 import java.io.IOException;

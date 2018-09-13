@@ -1,7 +1,7 @@
 package sergey.lavrenyuk.test;
 
 import sergey.lavrenyuk.io.Serializer;
-import sergey.lavrenyuk.io.data.PartitionedFileReader;
+import sergey.lavrenyuk.nn.training.io.PartitionedFileReader;
 import sergey.lavrenyuk.nn.WeightMatrix;
 import sergey.lavrenyuk.test.base.BaseTest;
 

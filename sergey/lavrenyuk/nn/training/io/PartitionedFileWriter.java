@@ -1,6 +1,7 @@
-package sergey.lavrenyuk.io.data;
+package sergey.lavrenyuk.nn.training.io;
 
-import robocode.RobocodeFileOutputStream;
+import sergey.lavrenyuk.io.PartitionedFiles;
+import sergey.lavrenyuk.io.Writer;
 
 import java.io.BufferedOutputStream;
 import java.io.File;
@@ -12,7 +13,6 @@ import java.util.function.Supplier;
 
 public class PartitionedFileWriter<T> implements Writer<T> {
 
-    private final boolean robocodeEnvironment;
     private final Supplier<File> fileSupplier;
     private final Function<T, byte[]> serialization;
     private final int itemsPerFile;
@@ -20,12 +20,10 @@ public class PartitionedFileWriter<T> implements Writer<T> {
     private OutputStream out;
     private int itemsWritten;
 
-    public PartitionedFileWriter(String filePattern, int itemsPerFile, Function<T, byte[]> serialization,
-                                 boolean robocodeEnvironment) throws IOException {
+    public PartitionedFileWriter(String filePattern, int itemsPerFile, Function<T, byte[]> serialization) throws IOException {
         this.fileSupplier = new PartitionedFiles.FileSupplier(filePattern);
         this.itemsPerFile = itemsPerFile;
         this.serialization = serialization;
-        this.robocodeEnvironment = robocodeEnvironment;
         this.out = nextOutputFileStream();
         this.itemsWritten = 0;
     }
@@ -51,9 +49,6 @@ public class PartitionedFileWriter<T> implements Writer<T> {
             out.flush();
             out.close();
         }
-        OutputStream outputStream = robocodeEnvironment
-                ? new RobocodeFileOutputStream(fileSupplier.get())
-                : new FileOutputStream(fileSupplier.get());
-        return new BufferedOutputStream(outputStream);
+        return new BufferedOutputStream(new FileOutputStream(fileSupplier.get()));
     }
 }

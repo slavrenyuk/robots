@@ -5,8 +5,6 @@ import sergey.lavrenyuk.nn.score.RoundResultConsumer;
 import sergey.lavrenyuk.nn.score.Score;
 import sergey.lavrenyuk.nn.score.WeightMatrixScorer;
 
-import java.util.Arrays;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 
 public class NeuralNetworkMode {
@@ -21,7 +19,7 @@ public class NeuralNetworkMode {
     public NeuralNetworkMode(String mode) {
         if (RANDOM.equals(mode)) {
             Supplier<Integer> maxAbsWeightSupplier =
-                    createIntGeneratorFromString(Config.getString("neuralNetwork.matrixMaxAbsWeight", "1"));
+                    new IntGeneratorFromString(Config.getString("neuralNetwork.matrixMaxAbsWeight", "1"));
             RandomWeightMatrixGenerator generator = new RandomWeightMatrixGenerator();
             this.weightMatrixSupplier = () -> generator.next(maxAbsWeightSupplier.get());
             this.roundResultConsumer = new NoOpResultConsumer();
@@ -47,16 +45,6 @@ public class NeuralNetworkMode {
 
     public RoundResultConsumer getRoundResultConsumer() {
         return roundResultConsumer;
-    }
-
-    public static Supplier<Integer> createIntGeneratorFromString(String str) {
-        Integer[] intArray = Arrays
-                .stream(str.split(","))
-                .map(String::trim)
-                .map(Integer::valueOf)
-                .toArray(Integer[]::new);
-        AtomicInteger index = new AtomicInteger(0);
-        return () -> intArray[index.getAndUpdate(i -> ++i < intArray.length ? i : 0)];
     }
 
     public static class NoOpResultConsumer implements RoundResultConsumer {

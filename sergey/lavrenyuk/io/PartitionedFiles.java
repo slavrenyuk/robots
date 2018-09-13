@@ -1,6 +1,4 @@
-package sergey.lavrenyuk.io.data;
-
-import sergey.lavrenyuk.io.IO;
+package sergey.lavrenyuk.io;
 
 import java.io.File;
 import java.util.Iterator;
@@ -10,12 +8,12 @@ public class PartitionedFiles {
 
     public static final String PLACEHOLDER = "{}";
 
-    public static class FileSupplier implements Supplier<File> {
+    public static class FileNameSupplier implements Supplier<String> {
 
         private final String filePattern;
         private int index;
 
-        public FileSupplier(String filePattern) {
+        public FileNameSupplier(String filePattern) {
             if (!filePattern.contains(PLACEHOLDER)) {
                 throw new IllegalArgumentException(String.format("file pattern must contain %s placeholder", PLACEHOLDER));
             }
@@ -24,8 +22,22 @@ public class PartitionedFiles {
         }
 
         @Override
+        public String get() {
+            return filePattern.replace(PLACEHOLDER, Integer.toString(index++));
+        }
+    }
+
+    public static class FileSupplier implements Supplier<File> {
+
+        private final FileNameSupplier fileNameSupplier;
+
+        public FileSupplier(String filePattern) {
+            this.fileNameSupplier = new FileNameSupplier(filePattern);
+        }
+
+        @Override
         public File get() {
-            return IO.getFile(filePattern.replace(PLACEHOLDER, Integer.toString(index++)));
+            return IO.getFile(fileNameSupplier.get());
         }
     }
 
@@ -50,5 +62,18 @@ public class PartitionedFiles {
             nextFile = supplier.get();
             return result;
         }
+    }
+
+    public static String resolvePlaceholder(String filePattern, int index) {
+        return filePattern.replace(PLACEHOLDER, Integer.toString(index));
+    }
+
+    public static String findNextAvailableFileName(String filePattern) {
+        FileNameSupplier fileNameSupplier = new FileNameSupplier(filePattern);
+        String fileName = fileNameSupplier.get();
+        while (IO.getFile(fileName).exists()) {
+            fileName = fileNameSupplier.get();
+        }
+        return fileName;
     }
 }

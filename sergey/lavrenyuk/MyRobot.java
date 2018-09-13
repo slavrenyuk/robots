@@ -18,6 +18,7 @@ import sergey.lavrenyuk.nn.score.RoundResultConsumer;
 import sergey.lavrenyuk.nn.score.Score;
 import sergey.lavrenyuk.nn.WeightMatrix;
 
+import java.awt.Color;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Supplier;
 
@@ -76,6 +77,10 @@ public class MyRobot extends AdvancedRobot {
 
         setAdjustGunForRobotTurn(true);
         setAdjustRadarForGunTurn(true);
+
+        Color darkBlue = new Color(0, 30, 50);
+        Color lightYellow = new Color(220, 220, 200);
+        setColors(darkBlue, darkBlue, darkBlue, lightYellow, lightYellow);
 
         if (getOthers() > 1) {
             log.error("This robot was designed for 1 to 1 battles, behaviour is unpredictable.");

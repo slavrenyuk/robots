@@ -1,5 +1,6 @@
 package sergey.lavrenyuk.test.base;
 
+import sergey.lavrenyuk.test.TestIntGeneratorFromString;
 import sergey.lavrenyuk.test.TestMaxValuesStorage;
 import sergey.lavrenyuk.test.TestNeuralNetwork;
 import sergey.lavrenyuk.test.TestNeuralNetworkMode;
@@ -7,6 +8,7 @@ import sergey.lavrenyuk.test.TestPartitionedFileReader;
 import sergey.lavrenyuk.test.TestPartitionedFileWriter;
 import sergey.lavrenyuk.test.TestPartitionedFiles;
 import sergey.lavrenyuk.test.TestSerializer;
+import sergey.lavrenyuk.test.TestTrainerRunner;
 import sergey.lavrenyuk.test.TestWeightMatrix;
 import sergey.lavrenyuk.test.TestWeightMatrixScorer;
 import sergey.lavrenyuk.test.TestWeightMatrixScorerRawDataIO;
@@ -19,6 +21,7 @@ public class AllTestsRunner {
     private static final List<Class<? extends BaseTest>> TEST_CLASSES = Arrays.asList(
             TestNeuralNetwork.class,
             TestNeuralNetworkMode.class,
+            TestIntGeneratorFromString.class,
             TestWeightMatrix.class,
             TestWeightMatrixScorer.class,
             TestWeightMatrixScorerRawDataIO.class,
@@ -26,7 +29,8 @@ public class AllTestsRunner {
             TestSerializer.class,
             TestMaxValuesStorage.class,
             TestPartitionedFileReader.class,
-            TestPartitionedFileWriter.class
+            TestPartitionedFileWriter.class,
+            TestTrainerRunner.class
     );
 
     public static void main(String[] args) {

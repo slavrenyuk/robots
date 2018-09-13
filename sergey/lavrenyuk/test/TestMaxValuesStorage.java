@@ -1,6 +1,6 @@
 package sergey.lavrenyuk.test;
 
-import sergey.lavrenyuk.io.MaxValuesStorage;
+import sergey.lavrenyuk.nn.training.utils.MaxValuesStorage;
 import sergey.lavrenyuk.test.base.BaseTest;
 
 import java.util.ArrayList;

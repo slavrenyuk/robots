@@ -1,8 +1,8 @@
 package sergey.lavrenyuk.test;
 
 import sergey.lavrenyuk.io.Serializer;
-import sergey.lavrenyuk.io.data.Reader;
-import sergey.lavrenyuk.io.data.Writer;
+import sergey.lavrenyuk.io.Reader;
+import sergey.lavrenyuk.io.Writer;
 import sergey.lavrenyuk.nn.WeightMatrix;
 import sergey.lavrenyuk.nn.score.Score;
 import sergey.lavrenyuk.nn.score.ScoredWeightMatrix;

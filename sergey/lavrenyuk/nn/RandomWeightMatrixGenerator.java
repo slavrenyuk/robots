@@ -12,6 +12,7 @@ public class RandomWeightMatrixGenerator {
 
     public WeightMatrix next(int maxAbsWeight) {
         return new WeightMatrix(
+                // +1 for the shift neuron
                 randomWeights(WeightMatrix.HIDDEN_NEURONS, WeightMatrix.INPUT_NEURONS + 1, maxAbsWeight),
                 randomWeights(WeightMatrix.OUTPUT_NEURONS, WeightMatrix.HIDDEN_NEURONS + 1, maxAbsWeight));
     }

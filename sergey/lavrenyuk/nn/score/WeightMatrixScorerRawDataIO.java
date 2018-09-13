@@ -1,9 +1,9 @@
 package sergey.lavrenyuk.nn.score;
 
 import robocode.RobocodeFileOutputStream;
-import sergey.lavrenyuk.io.data.PartitionedFiles;
-import sergey.lavrenyuk.io.data.Reader;
-import sergey.lavrenyuk.io.data.Writer;
+import sergey.lavrenyuk.io.PartitionedFiles;
+import sergey.lavrenyuk.io.Reader;
+import sergey.lavrenyuk.io.Writer;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;

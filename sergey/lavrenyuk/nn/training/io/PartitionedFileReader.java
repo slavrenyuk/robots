@@ -1,4 +1,7 @@
-package sergey.lavrenyuk.io.data;
+package sergey.lavrenyuk.nn.training.io;
+
+import sergey.lavrenyuk.io.PartitionedFiles;
+import sergey.lavrenyuk.io.Reader;
 
 import java.io.BufferedInputStream;
 import java.io.File;

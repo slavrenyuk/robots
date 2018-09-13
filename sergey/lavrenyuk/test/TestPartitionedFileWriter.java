@@ -1,7 +1,7 @@
 package sergey.lavrenyuk.test;
 
 import sergey.lavrenyuk.io.Serializer;
-import sergey.lavrenyuk.io.data.PartitionedFileWriter;
+import sergey.lavrenyuk.nn.training.io.PartitionedFileWriter;
 import sergey.lavrenyuk.nn.WeightMatrix;
 import sergey.lavrenyuk.test.base.BaseTest;
 
@@ -20,8 +20,7 @@ public class TestPartitionedFileWriter extends BaseTest {
 
     public void testHappyPath() throws IOException {
         createTestFiles("abc0.dat", "abc1.dat", "abc2.dat");
-        PartitionedFileWriter<WeightMatrix> writer =
-                new PartitionedFileWriter<>("abc{}.dat", 2, Serializer::serializeWeightMatrix, false);
+        PartitionedFileWriter<WeightMatrix> writer = new PartitionedFileWriter<>("abc{}.dat", 2, Serializer::serializeWeightMatrix);
 
         WeightMatrix wm11 = randomMatrix();
         WeightMatrix wm12 = randomMatrix();

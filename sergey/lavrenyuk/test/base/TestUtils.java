@@ -61,7 +61,11 @@ public class TestUtils {
     }
 
     public static void assertEqualsWithDelta(float first, float second) {
-        assertCondition(Math.abs(first - second) < 0.000001f, String.format("%f != %f", first, second));
+        assertEqualsWithDelta(first, second, 0.000001f);
+    }
+
+    public static void assertEqualsWithDelta(float first, float second, float delta) {
+        assertCondition(Math.abs(first - second) < delta, String.format("%f != %f with delta %f", first, second, delta));
     }
 
     public static void assertExceptionThrown(Runnable execution,
