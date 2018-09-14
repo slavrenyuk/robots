@@ -17,6 +17,8 @@ public class TestUtils {
 
     private static final RandomWeightMatrixGenerator matrixGenerator = new RandomWeightMatrixGenerator();
 
+    private static final float FLOAT_DELTA = 0.000001f;
+
     public static WeightMatrix randomMatrix() {
         return matrixGenerator.next();
     }
@@ -61,11 +63,33 @@ public class TestUtils {
     }
 
     public static void assertEqualsWithDelta(float first, float second) {
-        assertEqualsWithDelta(first, second, 0.000001f);
+        assertEqualsWithDelta(first, second, FLOAT_DELTA);
     }
 
     public static void assertEqualsWithDelta(float first, float second, float delta) {
         assertCondition(Math.abs(first - second) < delta, String.format("%f != %f with delta %f", first, second, delta));
+    }
+
+    public static void assertEqualsWithMutationAndDelta(WeightMatrix original, WeightMatrix mutated, int mutationPercentage) {
+        assertEqualsWithMutationAndDelta(
+                original.getInputToHiddenWeights(),
+                mutated.getInputToHiddenWeights(),
+                mutationPercentage);
+        assertEqualsWithMutationAndDelta(
+                original.getHiddenToOutputWeights(),
+                mutated.getHiddenToOutputWeights(),
+                mutationPercentage);
+    }
+
+    public static void assertEqualsWithMutationAndDelta(float[][] original, float[][] mutated, int mutationPercentage) {
+        for (int i = 0; i < original.length; i++) {
+            for (int j= 0; j < original[i].length; j++) {
+                assertEqualsWithDelta(
+                        original[i][j],
+                        mutated[i][j],
+                        Math.abs(original[i][j] * (mutationPercentage / 100f + FLOAT_DELTA)));
+            }
+        }
     }
 
     public static void assertExceptionThrown(Runnable execution,

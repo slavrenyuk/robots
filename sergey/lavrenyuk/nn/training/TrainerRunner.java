@@ -26,12 +26,8 @@ import java.util.function.Supplier;
 import static sergey.lavrenyuk.io.PartitionedFiles.findNextAvailableFileName;
 import static sergey.lavrenyuk.io.PartitionedFiles.FileIterator;
 import static sergey.lavrenyuk.io.PartitionedFiles.resolvePlaceholder;
-import static sergey.lavrenyuk.nn.training.utils.TrainerUtils.verifyInput;
 
 public class TrainerRunner {
-
-    private static final Log log;
-    private static final Scanner scanner;
 
     static { // initialize IO with our robot base directory
         String robotClassName = MyRobot.class.getSimpleName();
@@ -39,102 +35,171 @@ public class TrainerRunner {
         String basePath = baseFolder.getAbsolutePath() + "/";
 
         IO.initialize(() -> System.out, fileName -> new File(basePath + fileName));
-
-        log = new Log(TrainerRunner.class);
-        scanner = new Scanner(System.in);
     }
 
-    public static void main(String[] args) throws IOException{
+    private final Log log = new Log(TrainerRunner.class);
 
-        log.println("Choose one of the next options:");
-        log.println("T - training");
-        log.println("E - print training estimates");
-        log.println("W - print win percentage");
-        log.print("Input: ");
+    private String MATRIX_MAX_ABS_WEIGHT_STRING;
+    private String CURRENT_GENERATION_FILE_PATTERN;
+    private String NEXT_GENERATION_FILE_PATTERN;
+    private String SURVIVORS_FILE_PATTERN;
+    private String WIN_RATIO_FILE;
+    private int MATRICES_PER_OUTPUT_FILE;
+    private int POPULATION;
+    private int SURVIVORS;
+    private int CROSSINGOVER_INDIVIDUALS;
+    private int MUTATED_COPIES;
+    private int MUTATION_PERCENTAGE;
 
-        String input = scanner.nextLine();
+    public static void main(String[] args) throws IOException {
+        new TrainerRunner().run();
+    }
 
-        if ("T".equalsIgnoreCase(input)) {
-            File firstInputFile = new File(resolvePlaceholder(Config.getString("trainer.inputFilePattern"), 0));
-            if (!firstInputFile.exists()) {
-                performInitialTraining();
-            } else {
-                performTraining();
+    public void run() throws IOException {
+
+        readConfigProperties();
+
+        Scanner scanner = new Scanner(System.in);
+
+        while(true) { // quit when user prints Q
+
+            log.println("Choose one of the next options:");
+            log.println("T - training");
+            log.println("P - population info");
+            log.println("W - win percentage");
+            log.println("R - refresh configuration properties");
+            log.println("Q - quit");
+            log.print("Input: ");
+
+            String input = scanner.nextLine();
+
+            if ("Q".equalsIgnoreCase(input)) { // quit
+                log.println("Bye");
+                return;
             }
-        } else if ("E".equalsIgnoreCase(input)) {
-                printTrainingEstimates();
-        } else if ("W".equalsIgnoreCase(input)) {
-            printWinRatioFile();
-        } else {
-            log.println("Invalid input");
+
+            if ("R".equalsIgnoreCase(input)) { // refresh configs
+
+                Config.refresh();
+                readConfigProperties();
+                log.println("Configuration properties refreshed\n");
+
+            } else if ("T".equalsIgnoreCase(input)) { // training
+
+                File firstInputFile = new File(resolvePlaceholder(CURRENT_GENERATION_FILE_PATTERN, 0));
+                if (!firstInputFile.exists()) {
+                    log.println("There was no input files with pattern '%s' found.", CURRENT_GENERATION_FILE_PATTERN);
+                    log.println("%d random weight matrices will be created as an initial population.", POPULATION);
+
+                    log.println("\nConfirm and continue? Y/N");
+
+                    if ("Y".equalsIgnoreCase(scanner.nextLine())) {
+                        performInitialTraining();
+                    }
+                } else {
+                    printPopulationInfo();
+
+                    log.println("\nConfirm and continue? Y/N");
+
+                    if ("Y".equalsIgnoreCase(scanner.nextLine())) {
+                        performTraining();
+                    }
+                }
+
+            } else if ("P".equalsIgnoreCase(input)) { // population info
+
+                printPopulationInfo();
+
+            } else if ("W".equalsIgnoreCase(input)) { // win percentage
+
+                printWinRatioFile();
+
+            } else {
+
+                log.println("Invalid input\n");
+
+            }
         }
     }
 
-    public static void performInitialTraining() throws IOException {
+    private void readConfigProperties() {
+        CURRENT_GENERATION_FILE_PATTERN = Config.getNeuralNetworkScoredWeightMatrixFilePattern();
+        NEXT_GENERATION_FILE_PATTERN = Config.getNeuralNetworkWeightMatrixFilePattern();
+        SURVIVORS_FILE_PATTERN = Config.getTrainerSurvivorsFilePattern();
+        WIN_RATIO_FILE = Config.getTrainerWinRatioFile();
+        MATRICES_PER_OUTPUT_FILE = Config.getTrainerMatricesPerOutputFile();
+        POPULATION = Config.getTrainerPopulation();
+        SURVIVORS = Config.getTrainerSurvivors();
+        CROSSINGOVER_INDIVIDUALS = Config.getTrainerCrossingoverIndividuals();
+        MUTATED_COPIES = Config.getTrainerMutatedCopies();
+        MUTATION_PERCENTAGE = Config.getTrainerMutationPercentage();
+        MATRIX_MAX_ABS_WEIGHT_STRING = Config.getNeuralNetworkMatrixMaxAbsWeight();
+
+        // verify config parameters
+        if (POPULATION < 1) {
+            throw new IllegalArgumentException("population must be greater or equal to 1");
+        }
+        if (CROSSINGOVER_INDIVIDUALS < 0) {
+            throw new IllegalArgumentException("crossingover individuals must be greater or equal to 0");
+        }
+        if (SURVIVORS < CROSSINGOVER_INDIVIDUALS) {
+            throw new IllegalArgumentException("crossingover individuals are chosen from survivals, " +
+                    "so number of crossingover individuals must be less or equal to survivors number");
+        }
+        if (MUTATED_COPIES < 0) {
+            throw new IllegalArgumentException("mutated copies must be greater or equal to 0");
+        }
+        if (MUTATION_PERCENTAGE < 0 || MUTATION_PERCENTAGE > 100) {
+            throw new IllegalArgumentException("mutation percentage must be greater or equal to 0 and less or equal to 100");
+        }
+    }
+
+    private void performInitialTraining() throws IOException {
+
         RandomWeightMatrixGenerator randomWeightMatrixGenerator = new RandomWeightMatrixGenerator();
 
-        Supplier<Integer> matrixMaxAbsWeightGenerator =
-                new IntGeneratorFromString(Config.getString("neuralNetwork.matrixMaxAbsWeight", "1"));
+        Supplier<Integer> matrixMaxAbsWeightGenerator = new IntGeneratorFromString(MATRIX_MAX_ABS_WEIGHT_STRING);
 
         Writer<WeightMatrix> initialGenerationWriter = new PartitionedFileWriter<>(
-                Config.getString("trainer.outputFilePattern"),
-                Config.getInteger("trainer.matricesPerOutputFile"),
+                NEXT_GENERATION_FILE_PATTERN,
+                MATRICES_PER_OUTPUT_FILE,
                 Serializer::serializeWeightMatrix);
 
-        final int population = Config.getInteger("trainer.population");
-        for (int i = 0; i < population; i++) {
+        for (int i = 0; i < POPULATION; i++) {
             initialGenerationWriter.write(randomWeightMatrixGenerator.next(matrixMaxAbsWeightGenerator.get()));
         }
         initialGenerationWriter.close();
     }
 
-    public static void performTraining() throws IOException {
-        printTrainingEstimates(
-                Config.getInteger("trainer.survivors"),
-                Config.getInteger("trainer.crossingoverIndividuals"),
-                Config.getInteger("trainer.mutatedCopies"),
-                Config.getInteger("trainer.population"));
-
-        log.println("\nConfirm and continue? Y/N\n");
-        String input = scanner.nextLine();
-        if (!"Y".equalsIgnoreCase(input)) {
-            return;
-        }
+    private void performTraining() throws IOException {
 
         Reader<ScoredWeightMatrix> currentGenerationReader = new PartitionedFileReader<>(
-                Config.getString("trainer.inputFilePattern"),
+                CURRENT_GENERATION_FILE_PATTERN,
                 ScoredWeightMatrix.SIZE_IN_BYTES,
                 Serializer::deserializeScoredWeightMatrix);
 
         Writer<WeightMatrix> nextGenerationWriter = new PartitionedFileWriter<>(
-                Config.getString("trainer.outputFilePattern"),
-                Config.getInteger("trainer.matricesPerOutputFile"),
+                NEXT_GENERATION_FILE_PATTERN,
+                MATRICES_PER_OUTPUT_FILE,
                 Serializer::serializeWeightMatrix);
 
-        Writer<WeightMatrix> survivorsWriter = new FileWriter<>(
-                findNextAvailableFileName(Config.getString("trainer.survivorsFilePattern")),
-                Serializer::serializeWeightMatrix);
+        Writer<ScoredWeightMatrix> survivorsWriter = new FileWriter<>(
+                findNextAvailableFileName(SURVIVORS_FILE_PATTERN),
+                Serializer::serializeScoredWeightMatrix);
 
         Writer<Float> winRatioWriter = new FileWriter<>(
-                Config.getString("trainer.winRatioFile"),
+                WIN_RATIO_FILE,
                 floatValue -> ByteBuffer.wrap(new byte[Float.BYTES]).putFloat(floatValue).array(),
                 true);
 
         Runnable currentGenerationRemover = () -> {
-            FileIterator fileIterator = new FileIterator(Config.getString("trainer.inputFilePattern"));
+            FileIterator fileIterator = new FileIterator(CURRENT_GENERATION_FILE_PATTERN);
             while (fileIterator.hasNext()) {
                 fileIterator.next().delete();
             }
         };
 
-        int survivors = Config.getInteger("trainer.survivors");
-        int crossingoverIndividuals = Config.getInteger("trainer.crossingoverIndividuals");
-        int mutatedCopies = Config.getInteger("trainer.mutatedCopies");
-        int mutationPercentage = Config.getInteger("trainer.mutationPercentage");
-        int population = Config.getInteger("trainer.population");
-
-        Supplier<Integer> matrixMaxAbsWeightGenerator =
-                new IntGeneratorFromString(Config.getString("neuralNetwork.matrixMaxAbsWeight", "1"));
+        Supplier<Integer> matrixMaxAbsWeightGenerator = new IntGeneratorFromString(MATRIX_MAX_ABS_WEIGHT_STRING);
 
         new Trainer(
                 currentGenerationReader,
@@ -142,21 +207,21 @@ public class TrainerRunner {
                 survivorsWriter,
                 winRatioWriter,
                 currentGenerationRemover,
-                survivors,
-                crossingoverIndividuals,
-                mutatedCopies,
-                mutationPercentage,
-                population,
+                SURVIVORS,
+                CROSSINGOVER_INDIVIDUALS,
+                MUTATED_COPIES,
+                MUTATION_PERCENTAGE,
+                POPULATION,
                 matrixMaxAbsWeightGenerator)
                 .run();
     }
 
-    public static void printWinRatioFile() throws IOException {
+    private void printWinRatioFile() throws IOException {
 
-        File winRatioFile = IO.getFile(Config.getString("trainer.winRatioFile"));
+        File winRatioFile = IO.getFile(WIN_RATIO_FILE);
 
         if (!winRatioFile.exists()) {
-            log.println("Win ratio file %s not found", winRatioFile.getAbsolutePath());
+            log.println("Win ratio file '%s' not found", winRatioFile.getAbsolutePath());
             return;
         }
         if (!winRatioFile.isFile()) {
@@ -176,55 +241,43 @@ public class TrainerRunner {
             ByteBuffer byteBuffer = ByteBuffer.wrap(byteArray);
             float populationAverageWinRatio = byteBuffer.getFloat();
             float survivorsAverageWinRatio = byteBuffer.getFloat();
-            log.println("Generation %d survivors wins in %.4f%% of rounds, population wins in %.4f%% of rounds",
+            log.println("Generation %d survivors win percentage = %.2f%%, population win percentage = %.2f%%",
                     generation, populationAverageWinRatio * 100, survivorsAverageWinRatio * 100);
         }
     }
 
-    public static void printTrainingEstimates() {
-        printTrainingEstimates(
-                Config.getInteger("trainer.survivors"),
-                Config.getInteger("trainer.crossingoverIndividuals"),
-                Config.getInteger("trainer.mutatedCopies"),
-                Config.getInteger("trainer.population"));
-    }
-
-    public static void printTrainingEstimates(final int survivors,
-                                              final int crossingoverIndividuals,
-                                              final int mutatedCopies,
-                                              final int population) {
-        verifyInput(survivors, crossingoverIndividuals, mutatedCopies, population);
+    private void printPopulationInfo() {
 
         log.println("Input parameters:");
         log.println("S = %d\t(survivors)\nC = %d\t(crossingover individuals)\nM = %d\t(mutated copies)\nP = %d\t(population)\n",
-                survivors, crossingoverIndividuals, mutatedCopies, population);
+                SURVIVORS, CROSSINGOVER_INDIVIDUALS, MUTATED_COPIES, POPULATION);
         log.println("Crossingover individuals are chosen among top rated survivors and will be paired with another survivors.");
 
-        final int crossingovePairs = crossingoverIndividuals * survivors - crossingoverIndividuals * (1 + crossingoverIndividuals) / 2;
+        final int crossingovePairs = CROSSINGOVER_INDIVIDUALS * SURVIVORS - CROSSINGOVER_INDIVIDUALS * (1 + CROSSINGOVER_INDIVIDUALS) / 2;
         log.println("Number of crossingover pairs CP = (S - 1) + (S - 2) + ... + (S - C) = C * S - C * (1 + C) / 2");
         log.println("CP = %d (crossingover pairs)\n", crossingovePairs);
 
-        final int descendants = survivors + crossingovePairs * 2;
+        final int descendants = SURVIVORS + crossingovePairs * 2;
         log.println("Each crossingover pair produces 2 children.");
         log.println("Let's call survivors and their children as descendants D = S + 2 * CP");
         log.println("D = %d (descendants)\n", descendants);
 
-        final int mutatedDescendants = descendants * (1 + mutatedCopies);
-        log.println("After that, descendants are cloned and mutated M = %d times", mutatedCopies);
+        final int mutatedDescendants = descendants * (1 + MUTATED_COPIES);
+        log.println("After that, descendants are cloned and mutated M = %d times", POPULATION);
         log.println("Let's call descendants and their clones as mutated descendants MD = D * (1 + M)");
         log.println("MD = %d (mutated descendants)\n", mutatedDescendants);
 
-        if (population == mutatedDescendants) {
+        if (POPULATION == mutatedDescendants) {
             log.println("Population is the same as the mutated descendants number.\nSo, the mutated descendants will be used as the next generation.");
-        } else if (population > mutatedDescendants) {
+        } else if (POPULATION > mutatedDescendants) {
             log.println("Population (P = %d) is greater than the mutated descendants number (MD = %d).\n" +
-                    "So, there will random individuals added (A) to the next generation A = P - MD", population, mutatedDescendants);
-            log.println("A = %d (added random individuals)", population - mutatedDescendants);
+                    "So, there will random individuals added (A) to the next generation A = P - MD", POPULATION, mutatedDescendants);
+            log.println("A = %d (added random individuals)", POPULATION - mutatedDescendants);
         } else {
             log.println("Population (P = %d) is less than the mutated descendants number (MD = %d).\n" +
-                    "So, some of the mutated descendants will be removed (R) from the next generation R = MD - P", population, mutatedDescendants);
-            log.println("R = %d (removed individuals)", mutatedDescendants - population);
+                    "So, some of the mutated descendants will be removed (R) from the next generation R = MD - P", POPULATION, mutatedDescendants);
+            log.println("R = %d (removed individuals)", mutatedDescendants - POPULATION);
         }
-        log.println("\n");
+        log.println("");
     }
 }

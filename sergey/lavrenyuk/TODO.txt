@@ -1,6 +1,4 @@
 1. manual testing of the robot training - verify it reads weight matrices and scores them as expected
 2. add javadocs
 3. add project description to README file
-4. add tests for trainer package, PartitionedFiles.findNextAvailableFileName
-5. add tests for neuran network mode
-6. find and cover all uncovered code
+4. add logs to trainer and scorer

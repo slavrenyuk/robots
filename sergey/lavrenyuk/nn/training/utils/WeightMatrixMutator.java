@@ -41,6 +41,7 @@ public class WeightMatrixMutator {
     }
 
     private float mutate(float weight) {
-        return weight * (1 + random.nextFloat() * ratio);
+        float mutation = (2 * random.nextFloat() - 1) * ratio;
+        return weight * (1 + mutation);
     }
 }

@@ -11,32 +11,81 @@ public class Config {
 
     private Config() {}
 
-    private static final Properties PROPERTIES = loadProperties("config.properties");
+    private static Properties PROPERTIES = loadProperties("config.properties");
 
-    public static String getString(String key, String defaultValue) {
-        return getProperty(PROPERTIES, key, s -> s, defaultValue);
+    public static void refresh() {
+        PROPERTIES = loadProperties("config.properties");
     }
 
-    public static boolean getBoolean(String key, boolean defaultValue) {
-        return getProperty(PROPERTIES, key, Boolean::valueOf, defaultValue);
+    public static String getNeuralNetworkMode() {
+        return getString("neuralNetwork.mode");
     }
 
-    public static int getInteger(String key, int defaultValue) {
-        return getProperty(PROPERTIES, key, Integer::valueOf, defaultValue);
+    public static String getNeuralNetworkMatrixMaxAbsWeight() {
+        return getString("neuralNetwork.matrixMaxAbsWeight");
     }
 
-    public static String getString(String key) {
+    public static String getNeuralNetworkWeightMatrixFilePattern() {
+        return getString("neuralNetwork.weightMatrixFilePattern");
+    }
+
+    public static String getNeuralNetworkScoredWeightMatrixFilePattern() {
+        return getString("neuralNetwork.scoredWeightMatrixFilePattern");
+    }
+
+    public static Integer getScorerRoundsPerMatrix() {
+        return getInteger("scorer.roundsPerMatrix");
+    }
+
+    public static Integer getScorerStartFileIndex() {
+        return getInteger("scorer.startFileIndex");
+    }
+
+    public static Integer getTrainerMatricesPerOutputFile() {
+        return getInteger("trainer.matricesPerOutputFile");
+    }
+
+    public static String getTrainerWinRatioFile() {
+        return getString("trainer.winRatioFile");
+    }
+
+    public static String getTrainerSurvivorsFilePattern() {
+        return getString("trainer.survivorsFilePattern");
+    }
+
+    public static Integer getTrainerPopulation() {
+        return getInteger("trainer.population");
+    }
+
+    public static Integer getTrainerSurvivors() {
+        return getInteger("trainer.survivors");
+    }
+
+    public static Integer getTrainerCrossingoverIndividuals() {
+        return getInteger("trainer.crossingoverIndividuals");
+    }
+
+    public static Integer getTrainerMutatedCopies() {
+        return getInteger("trainer.mutatedCopies");
+    }
+
+    public static Integer getTrainerMutationPercentage() {
+        return getInteger("trainer.mutationPercentage");
+    }
+
+    private static String getString(String key) {
         return getProperty(PROPERTIES, key, s -> s);
     }
 
-    public static boolean getBoolean(String key) {
-        return getProperty(PROPERTIES, key, Boolean::valueOf);
-    }
-
-    public static int getInteger(String key) {
+    private static int getInteger(String key) {
         return getProperty(PROPERTIES, key, Integer::valueOf);
     }
 
+    private static  <T> T getProperty(Properties properties, String key, Function<String, T> parseFunction) {
+        return Optional.ofNullable(properties.getProperty(key))
+                .map(parseFunction)
+                .orElseThrow(() -> new AssertionError(String.format("Property '%s' not found", key)));
+    }
 
     private static Properties loadProperties(String fileName) {
         File file = IO.getFile(fileName);
@@ -53,16 +102,4 @@ public class Config {
         }
     }
 
-    private static  <T> T getProperty(Properties properties, String key, Function<String, T> parseFunction, T defaultValue) {
-        return Optional.ofNullable(properties.getProperty(key))
-                .map(parseFunction)
-                .orElse(defaultValue);
-    }
-
-
-    private static  <T> T getProperty(Properties properties, String key, Function<String, T> parseFunction) {
-        return Optional.ofNullable(properties.getProperty(key))
-                .map(parseFunction)
-                .orElseThrow(() -> new AssertionError(String.format("Property %s not found", key)));
-    }
 }

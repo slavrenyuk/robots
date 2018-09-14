@@ -26,7 +26,7 @@ public class PartitionedFileReader<T> implements Reader<T> {
         if (fileIterator.hasNext()) {
             this.in = nextInputFileStream();
         } else {
-            throw new IllegalArgumentException(String.format("No files found for pattern %s", filePattern));
+            throw new IllegalArgumentException(String.format("No files found for pattern '%s'", filePattern));
         }
     }
 

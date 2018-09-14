@@ -19,16 +19,16 @@ public class NeuralNetworkMode {
     public NeuralNetworkMode(String mode) {
         if (RANDOM.equals(mode)) {
             Supplier<Integer> maxAbsWeightSupplier =
-                    new IntGeneratorFromString(Config.getString("neuralNetwork.matrixMaxAbsWeight", "1"));
+                    new IntGeneratorFromString(Config.getNeuralNetworkMatrixMaxAbsWeight());
             RandomWeightMatrixGenerator generator = new RandomWeightMatrixGenerator();
             this.weightMatrixSupplier = () -> generator.next(maxAbsWeightSupplier.get());
             this.roundResultConsumer = new NoOpResultConsumer();
         } else if (TRAINING.equals(mode)) {
             WeightMatrixScorer weightMatrixScorer = WeightMatrixScorer.create(
-                    Config.getString("scorer.inputFilePattern"),
-                    Config.getString("scorer.outputFilePattern"),
-                    Config.getInteger("scorer.startFileIndex", 0),
-                    Config.getInteger("scorer.roundsPerMatrix"),
+                    Config.getNeuralNetworkWeightMatrixFilePattern(),
+                    Config.getNeuralNetworkScoredWeightMatrixFilePattern(),
+                    Config.getScorerStartFileIndex(),
+                    Config.getScorerRoundsPerMatrix(),
                     true);
             this.weightMatrixSupplier = weightMatrixScorer;
             this.roundResultConsumer = weightMatrixScorer;

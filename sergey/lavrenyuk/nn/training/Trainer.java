@@ -17,12 +17,11 @@ import java.util.function.Supplier;
 import static sergey.lavrenyuk.nn.training.utils.TrainerUtils.concatLazily;
 import static sergey.lavrenyuk.nn.training.utils.TrainerUtils.crossingover;
 import static sergey.lavrenyuk.nn.training.utils.TrainerUtils.mutateLazily;
-import static sergey.lavrenyuk.nn.training.utils.TrainerUtils.verifyInput;
 
 public class Trainer {
     private final Reader<ScoredWeightMatrix> currentGenerationReader;
     private final Writer<WeightMatrix> nextGenerationWriter;
-    private final Writer<WeightMatrix> survivorsWriter;
+    private final Writer<ScoredWeightMatrix> survivorsWriter;
     private final Writer<Float> winRatioWriter;
     private final Runnable currentGenerationRemover;
     private final int survivors;
@@ -34,7 +33,7 @@ public class Trainer {
 
     public Trainer(Reader<ScoredWeightMatrix> currentGenerationReader,
                    Writer<WeightMatrix> nextGenerationWriter,
-                   Writer<WeightMatrix> survivorsWriter,
+                   Writer<ScoredWeightMatrix> survivorsWriter,
                    Writer<Float> winRatioWriter,
                    Runnable currentGenerationRemover,
                    int survivors,
@@ -43,8 +42,6 @@ public class Trainer {
                    int mutationPercentage,
                    int population,
                    Supplier<Integer> matrixMaxAbsWeightGenerator) {
-
-        verifyInput(survivors, crossingoverIndividuals, mutatedCopies, mutationPercentage, population);
 
         this.currentGenerationReader = currentGenerationReader;
         this.nextGenerationWriter = nextGenerationWriter;
@@ -75,7 +72,7 @@ public class Trainer {
         List<WeightMatrix> survivorsWeightMatrices = new ArrayList<>();
         averageEvaluator = new AverageEvaluator();
         for (ScoredWeightMatrix survivorScoredWeightMatrix : survivorsScoredWeightMatrices) {
-            survivorsWriter.write(survivorScoredWeightMatrix.getWeightMatrix());
+            survivorsWriter.write(survivorScoredWeightMatrix);
             survivorsWeightMatrices.add(survivorScoredWeightMatrix.getWeightMatrix());
             averageEvaluator.put(survivorScoredWeightMatrix.getScore().getWinRate());
         }
@@ -84,10 +81,10 @@ public class Trainer {
         winRatioWriter.write(populationAverageWinRatio);
         winRatioWriter.write(survivorsAverageWinRatio);
 
-        currentGenerationReader.close();
         survivorsWriter.close();
         winRatioWriter.close();
 
+        currentGenerationReader.close();
         currentGenerationRemover.run();
 
         List<WeightMatrix> childrenWeightMatrices = crossingover(survivorsWeightMatrices, crossingoverIndividuals);

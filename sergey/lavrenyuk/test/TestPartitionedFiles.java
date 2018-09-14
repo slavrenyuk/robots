@@ -42,4 +42,9 @@ public class TestPartitionedFiles {
         assertCondition(iterator.next().getAbsolutePath().contains("empty1.dat"));
         assertCondition(!iterator.hasNext());
     }
+
+    public void testFiNextAvailableFileName() throws IOException {
+        createTestFiles("abc0.dat", "abc1.dat");
+        assertCondition(("abc2.dat".equals(PartitionedFiles.findNextAvailableFileName("abc{}.dat"))));
+    }
 }

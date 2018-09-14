@@ -62,7 +62,7 @@ public class TestWeightMatrixScorerRawDataIO {
                     }
                 },
                 IllegalArgumentException.class,
-                "No input files found for pattern input_test_file_part{}.dat");
+                "No input files found for pattern 'input_test_file_part{}.dat'");
     }
 
     public void testNoEnoughInputFiles() throws IOException {

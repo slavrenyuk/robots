@@ -54,7 +54,7 @@ public class MyRobot extends AdvancedRobot {
         IO.initialize(() -> out, this::getDataFile);
 
         if (!staticInitialized.get()) {
-            NeuralNetworkMode neuralNetworkMode = new NeuralNetworkMode(Config.getString("neuralNetwork.mode"));
+            NeuralNetworkMode neuralNetworkMode = new NeuralNetworkMode(Config.getNeuralNetworkMode());
             weightMatrixSupplier = neuralNetworkMode.getWeightMatrixSupplier();
             roundResultConsumer = neuralNetworkMode.getRoundResultConsumer();
 

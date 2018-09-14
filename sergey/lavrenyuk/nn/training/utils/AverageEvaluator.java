@@ -5,9 +5,10 @@ public class AverageEvaluator {
     private float summ = 0f;
     private int count = 0;
 
-    public void put(float value) {
+    public AverageEvaluator put(float value) {
         summ += value;
         count++;
+        return this;
     }
 
     public float getAverage() {
