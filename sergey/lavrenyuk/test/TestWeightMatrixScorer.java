@@ -7,7 +7,6 @@ import sergey.lavrenyuk.nn.WeightMatrix;
 import sergey.lavrenyuk.nn.score.Score;
 import sergey.lavrenyuk.nn.score.ScoredWeightMatrix;
 import sergey.lavrenyuk.nn.score.WeightMatrixScorer;
-import sergey.lavrenyuk.test.base.BaseTest;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -15,10 +14,10 @@ import static sergey.lavrenyuk.test.base.TestUtils.assertCondition;
 import static sergey.lavrenyuk.test.base.TestUtils.assertEqualsWithDelta;
 import static sergey.lavrenyuk.test.base.TestUtils.randomMatrix;
 
-public class TestWeightMatrixScorer extends BaseTest {
+public class TestWeightMatrixScorer {
 
     public static void main(String[] args) {
-        new TestWeightMatrixScorer().runTests();
+        Runner.runTests(TestWeightMatrixScorer.class);
     }
 
     public void testHappyPath() {

@@ -2,7 +2,6 @@ package sergey.lavrenyuk.test;
 
 import sergey.lavrenyuk.io.IO;
 import sergey.lavrenyuk.nn.score.WeightMatrixScorerRawDataIO;
-import sergey.lavrenyuk.test.base.BaseTest;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -13,13 +12,13 @@ import static sergey.lavrenyuk.test.base.TestUtils.assertFileContents;
 import static sergey.lavrenyuk.test.base.TestUtils.createTestFile;
 import static sergey.lavrenyuk.test.base.TestUtils.createTestFiles;
 
-public class TestWeightMatrixScorerRawDataIO extends BaseTest {
+public class TestWeightMatrixScorerRawDataIO {
 
     private final int INPUT_ITEM_SIZE = 3;
     private final int OUTPUT_ITEM_SIZE = 2;
 
     public static void main(String[] args) {
-        new TestWeightMatrixScorerRawDataIO().runTests();
+        Runner.runTests(TestWeightMatrixScorerRawDataIO.class);
     }
 
     public void testHappyPath() throws IOException {

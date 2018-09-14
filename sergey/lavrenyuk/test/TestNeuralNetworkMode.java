@@ -1,14 +1,13 @@
 package sergey.lavrenyuk.test;
 
 import sergey.lavrenyuk.nn.NeuralNetworkMode;
-import sergey.lavrenyuk.test.base.BaseTest;
 
 import static sergey.lavrenyuk.test.base.TestUtils.assertExceptionThrown;
 
-public class TestNeuralNetworkMode extends BaseTest {
+public class TestNeuralNetworkMode {
 
     public static void main(String[] args) {
-        new TestNeuralNetworkMode().runTests();
+        Runner.runTests(TestNeuralNetworkMode.class);
     }
 
     public void testIncorectMode() {

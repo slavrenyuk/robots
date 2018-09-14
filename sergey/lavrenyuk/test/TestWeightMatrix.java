@@ -1,14 +1,13 @@
 package sergey.lavrenyuk.test;
 
 import sergey.lavrenyuk.nn.WeightMatrix;
-import sergey.lavrenyuk.test.base.BaseTest;
 
 import static sergey.lavrenyuk.test.base.TestUtils.assertExceptionThrown;
 
-public class TestWeightMatrix extends BaseTest {
+public class TestWeightMatrix {
 
     public static void main(String[] args) {
-        new TestWeightMatrix().runTests();
+        Runner.runTests(TestWeightMatrix.class);
     }
 
     public void testInvalidArgumentsSize() {

@@ -3,7 +3,6 @@ package sergey.lavrenyuk.test;
 import sergey.lavrenyuk.io.Serializer;
 import sergey.lavrenyuk.nn.training.io.PartitionedFileWriter;
 import sergey.lavrenyuk.nn.WeightMatrix;
-import sergey.lavrenyuk.test.base.BaseTest;
 
 import java.io.IOException;
 
@@ -12,10 +11,10 @@ import static sergey.lavrenyuk.test.base.TestUtils.concat;
 import static sergey.lavrenyuk.test.base.TestUtils.createTestFiles;
 import static sergey.lavrenyuk.test.base.TestUtils.randomMatrix;
 
-public class TestPartitionedFileWriter extends BaseTest {
+public class TestPartitionedFileWriter {
 
     public static void main(String[] args) {
-        new TestPartitionedFileWriter().runTests();
+        Runner.runTests(TestPartitionedFileWriter.class);
     }
 
     public void testHappyPath() throws IOException {

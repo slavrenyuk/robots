@@ -13,11 +13,9 @@ public class TestMetric {
         failed++;
     }
 
-    public TestMetric merge(TestMetric other) {
-        TestMetric result = new TestMetric();
-        result.successful = this.successful + other.successful;
-        result.failed = this.failed + other.failed;
-        return result;
+    public void add(TestMetric other) {
+        this.successful += other.successful;
+        this.failed += other.failed;
     }
 
     @Override

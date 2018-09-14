@@ -1,7 +1,6 @@
 package sergey.lavrenyuk.test;
 
 import sergey.lavrenyuk.io.PartitionedFiles;
-import sergey.lavrenyuk.test.base.BaseTest;
 
 import java.io.File;
 import java.io.IOException;
@@ -12,10 +11,10 @@ import static sergey.lavrenyuk.test.base.TestUtils.assertCondition;
 import static sergey.lavrenyuk.test.base.TestUtils.assertExceptionThrown;
 import static sergey.lavrenyuk.test.base.TestUtils.createTestFiles;
 
-public class TestPartitionedFiles extends BaseTest {
+public class TestPartitionedFiles {
 
     public static void main(String[] args) {
-        new TestPartitionedFiles().runTests();
+        Runner.runTests(TestPartitionedFiles.class);
     }
 
     public void testFileSupplierWithoutPlaceholder() {

@@ -1,17 +1,16 @@
 package sergey.lavrenyuk.test;
 
 import sergey.lavrenyuk.nn.IntGeneratorFromString;
-import sergey.lavrenyuk.test.base.BaseTest;
 
 import java.util.function.Supplier;
 
 import static sergey.lavrenyuk.test.base.TestUtils.assertCondition;
 import static sergey.lavrenyuk.test.base.TestUtils.assertExceptionThrown;
 
-public class TestIntGeneratorFromString extends BaseTest {
+public class TestIntGeneratorFromString {
 
     public static void main(String[] args) {
-        new TestIntGeneratorFromString().runTests();
+        Runner.runTests(TestIntGeneratorFromString.class);
     }
 
     public void testIntGeneratorFromEmptyString() {

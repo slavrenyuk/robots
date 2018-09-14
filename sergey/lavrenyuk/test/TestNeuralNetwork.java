@@ -2,17 +2,16 @@ package sergey.lavrenyuk.test;
 
 import sergey.lavrenyuk.nn.NeuralNetwork;
 import sergey.lavrenyuk.nn.WeightMatrix;
-import sergey.lavrenyuk.test.base.BaseTest;
 
 import java.util.Arrays;
 
 import static sergey.lavrenyuk.test.base.TestUtils.assertEqualsWithDelta;
 import static sergey.lavrenyuk.test.base.TestUtils.randomMatrix;
 
-public class TestNeuralNetwork extends BaseTest {
+public class TestNeuralNetwork {
 
     public static void main(String[] args) {
-        new TestNeuralNetwork().runTests();
+        Runner.runTests(TestNeuralNetwork.class);
     }
 
     public void testProcessNotFails() {

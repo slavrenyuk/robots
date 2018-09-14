@@ -3,7 +3,6 @@ package sergey.lavrenyuk.test;
 import sergey.lavrenyuk.io.Serializer;
 import sergey.lavrenyuk.nn.training.io.PartitionedFileReader;
 import sergey.lavrenyuk.nn.WeightMatrix;
-import sergey.lavrenyuk.test.base.BaseTest;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -12,10 +11,10 @@ import static sergey.lavrenyuk.test.base.TestUtils.assertCondition;
 import static sergey.lavrenyuk.test.base.TestUtils.createTestFile;
 import static sergey.lavrenyuk.test.base.TestUtils.randomMatrix;
 
-public class TestPartitionedFileReader extends BaseTest {
+public class TestPartitionedFileReader {
 
     public static void main(String[] args) {
-        new TestPartitionedFileReader().runTests();
+        Runner.runTests(TestPartitionedFileReader.class);
     }
 
     public void testHappyPath() throws IOException {

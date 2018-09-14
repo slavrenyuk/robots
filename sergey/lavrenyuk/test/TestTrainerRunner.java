@@ -1,12 +1,11 @@
 package sergey.lavrenyuk.test;
 
 import sergey.lavrenyuk.nn.training.TrainerRunner;
-import sergey.lavrenyuk.test.base.BaseTest;
 
-public class TestTrainerRunner extends BaseTest {
+public class TestTrainerRunner {
 
     public static void main(String[] args) {
-        new TestTrainerRunner().runTests();
+        Runner.runTests(TestTrainerRunner.class);
     }
 
     public void testPrintRemovedIndividuals() {
