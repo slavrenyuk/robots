@@ -40,16 +40,12 @@ then
         clean
     elif [ $1 == "train" ]
     then
-        clean
         compile "sergey/lavrenyuk/nn/training/TrainerRunner.java"
         execute "sergey.lavrenyuk.nn.training.TrainerRunner"
-        clean
     elif [ $1 == "test" ]
     then
-        clean
         compile "sergey/lavrenyuk/test/*.java"
         execute "sergey.lavrenyuk.test.Runner"
-        clean
     else
         print_usage
     fi

@@ -50,6 +50,7 @@ public class TrainerRunner {
     private int CROSSINGOVER_INDIVIDUALS;
     private int MUTATED_COPIES;
     private int MUTATION_PERCENTAGE;
+    private int ROUNDS_PER_MATRIX;
 
     public static void main(String[] args) throws IOException {
         new TrainerRunner().run();
@@ -63,12 +64,13 @@ public class TrainerRunner {
 
         while(true) { // quit when user prints Q
 
-            log.println("Choose one of the next options:");
-            log.println("T - training");
-            log.println("P - population info");
-            log.println("W - win percentage");
-            log.println("R - refresh configuration properties");
-            log.println("Q - quit");
+            log.println("\nChoose one of the next options:");
+            log.println("T  - training");
+            log.println("P  - population info");
+            log.println("Pv - verbose population info");
+            log.println("W  - win percentage");
+            log.println("R  - refresh configuration properties");
+            log.println("Q  - quit");
             log.print("Input: ");
 
             String input = scanner.nextLine();
@@ -82,11 +84,11 @@ public class TrainerRunner {
 
                 Config.refresh();
                 readConfigProperties();
-                log.println("Configuration properties refreshed\n");
+                log.println("Configuration properties refreshed");
 
             } else if ("T".equalsIgnoreCase(input)) { // training
 
-                File firstInputFile = new File(resolvePlaceholder(CURRENT_GENERATION_FILE_PATTERN, 0));
+                File firstInputFile = IO.getFile(resolvePlaceholder(CURRENT_GENERATION_FILE_PATTERN, 0));
                 if (!firstInputFile.exists()) {
                     log.println("There was no input files with pattern '%s' found.", CURRENT_GENERATION_FILE_PATTERN);
                     log.println("%d random weight matrices will be created as an initial population.", POPULATION);
@@ -97,7 +99,7 @@ public class TrainerRunner {
                         performInitialTraining();
                     }
                 } else {
-                    printPopulationInfo();
+                    printPopulationInfoShort();
 
                     log.println("\nConfirm and continue? Y/N");
 
@@ -106,9 +108,13 @@ public class TrainerRunner {
                     }
                 }
 
-            } else if ("P".equalsIgnoreCase(input)) { // population info
+            } else if ("P".equalsIgnoreCase(input)) { // short population info
 
-                printPopulationInfo();
+                printPopulationInfoShort();
+
+            } else if ("Pv".equalsIgnoreCase(input)) { // verbose population info
+
+                printPopulationInfoVerbose();
 
             } else if ("W".equalsIgnoreCase(input)) { // win percentage
 
@@ -116,7 +122,7 @@ public class TrainerRunner {
 
             } else {
 
-                log.println("Invalid input\n");
+                log.println("Invalid input");
 
             }
         }
@@ -134,6 +140,7 @@ public class TrainerRunner {
         MUTATED_COPIES = Config.getTrainerMutatedCopies();
         MUTATION_PERCENTAGE = Config.getTrainerMutationPercentage();
         MATRIX_MAX_ABS_WEIGHT_STRING = Config.getNeuralNetworkMatrixMaxAbsWeight();
+        ROUNDS_PER_MATRIX = Config.getScorerRoundsPerMatrix();
 
         // verify config parameters
         if (POPULATION < 1) {
@@ -151,6 +158,9 @@ public class TrainerRunner {
         }
         if (MUTATION_PERCENTAGE < 0 || MUTATION_PERCENTAGE > 100) {
             throw new IllegalArgumentException("mutation percentage must be greater or equal to 0 and less or equal to 100");
+        }
+        if (ROUNDS_PER_MATRIX < 1) {
+            throw new IllegalArgumentException("at least one round per matrix is expected");
         }
     }
 
@@ -242,24 +252,24 @@ public class TrainerRunner {
             float populationAverageWinRatio = byteBuffer.getFloat();
             float survivorsAverageWinRatio = byteBuffer.getFloat();
             log.println("Generation %d survivors win percentage = %.2f%%, population win percentage = %.2f%%",
-                    generation, populationAverageWinRatio * 100, survivorsAverageWinRatio * 100);
+                    generation, survivorsAverageWinRatio * 100, populationAverageWinRatio * 100);
         }
     }
 
-    private void printPopulationInfo() {
+    private void printPopulationInfoVerbose() {
 
-        log.println("Input parameters:");
+        log.println("\nInput parameters:");
         log.println("S = %d\t(survivors)\nC = %d\t(crossingover individuals)\nM = %d\t(mutated copies)\nP = %d\t(population)\n",
                 SURVIVORS, CROSSINGOVER_INDIVIDUALS, MUTATED_COPIES, POPULATION);
         log.println("Crossingover individuals are chosen among top rated survivors and will be paired with another survivors.");
 
-        final int crossingovePairs = CROSSINGOVER_INDIVIDUALS * SURVIVORS - CROSSINGOVER_INDIVIDUALS * (1 + CROSSINGOVER_INDIVIDUALS) / 2;
+        final int crossingoverPairs = CROSSINGOVER_INDIVIDUALS * SURVIVORS - CROSSINGOVER_INDIVIDUALS * (1 + CROSSINGOVER_INDIVIDUALS) / 2;
         log.println("Number of crossingover pairs CP = (S - 1) + (S - 2) + ... + (S - C) = C * S - C * (1 + C) / 2");
-        log.println("CP = %d (crossingover pairs)\n", crossingovePairs);
+        log.println("CP = %d (crossingover pairs)\n", crossingoverPairs);
 
-        final int descendants = SURVIVORS + crossingovePairs * 2;
+        final int descendants = SURVIVORS + crossingoverPairs * 2;
         log.println("Each crossingover pair produces 2 children.");
-        log.println("Let's call survivors and their children as descendants D = S + 2 * CP");
+            log.println("Let's call survivors and their children as descendants D = S + 2 * CP");
         log.println("D = %d (descendants)\n", descendants);
 
         final int mutatedDescendants = descendants * (1 + MUTATED_COPIES);
@@ -268,16 +278,45 @@ public class TrainerRunner {
         log.println("MD = %d (mutated descendants)\n", mutatedDescendants);
 
         if (POPULATION == mutatedDescendants) {
-            log.println("Population is the same as the mutated descendants number.\nSo, the mutated descendants will be used as the next generation.");
+            log.println("Population is the same as the mutated descendants number.\nSo, the mutated descendants will be used as the next generation.\n");
         } else if (POPULATION > mutatedDescendants) {
             log.println("Population (P = %d) is greater than the mutated descendants number (MD = %d).\n" +
-                    "So, there will random individuals added (A) to the next generation A = P - MD", POPULATION, mutatedDescendants);
-            log.println("A = %d (added random individuals)", POPULATION - mutatedDescendants);
+                        "So, there will random individuals added (A) to the next generation A = P - MD", POPULATION, mutatedDescendants);
+            log.println("A = %d (added random individuals)\n", POPULATION - mutatedDescendants);
         } else {
             log.println("Population (P = %d) is less than the mutated descendants number (MD = %d).\n" +
-                    "So, some of the mutated descendants will be removed (R) from the next generation R = MD - P", POPULATION, mutatedDescendants);
-            log.println("R = %d (removed individuals)", mutatedDescendants - POPULATION);
+                        "So, some of the mutated descendants will be removed (R) from the next generation R = MD - P", POPULATION, mutatedDescendants);
+            log.println("R = %d (removed individuals)\n", mutatedDescendants - POPULATION);
         }
-        log.println("");
+
+        log.println("Population = %d, rounds per individual (matrix) = %d.",
+                    POPULATION, ROUNDS_PER_MATRIX, POPULATION * ROUNDS_PER_MATRIX);
+        log.println("Required rounds = %d", POPULATION * ROUNDS_PER_MATRIX);
+    }
+
+    private void printPopulationInfoShort() {
+
+        log.println("\nInput parameters:");
+        log.println("%d survivors\n%d crossingover individuals\n%d mutated copies\n%d population\n",
+                SURVIVORS, CROSSINGOVER_INDIVIDUALS, MUTATED_COPIES, POPULATION);
+
+        final int crossingoverPairs = CROSSINGOVER_INDIVIDUALS * SURVIVORS - CROSSINGOVER_INDIVIDUALS * (1 + CROSSINGOVER_INDIVIDUALS) / 2;
+        log.println("%d crossingover pairs", crossingoverPairs);
+
+        final int descendants = SURVIVORS + crossingoverPairs * 2;
+        log.println("%d descendants", descendants);
+
+        final int mutatedDescendants = descendants * (1 + MUTATED_COPIES);
+        log.println("%d mutated descendants\n", mutatedDescendants);
+
+        if (POPULATION == mutatedDescendants) {
+            log.println("Population is the same as the mutated descendants number.\nSo, the mutated descendants will be used as the next generation.\n");
+        } else if (POPULATION > mutatedDescendants) {
+            log.println("%d added random individuals\n", POPULATION - mutatedDescendants);
+        } else {
+            log.println("%d removed individuals\n", mutatedDescendants - POPULATION);
+        }
+
+        log.println("%d rounds required", POPULATION * ROUNDS_PER_MATRIX);
     }
 }

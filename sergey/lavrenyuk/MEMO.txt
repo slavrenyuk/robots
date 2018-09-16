@@ -1,3 +1,7 @@
+Property to change robot data quota to 1Gb instead of default 200Kb
+file        - config/robocode.properties
+property    - robocode.robot.filesystem.quota=1000000000
+
 Enemy for the first generation is VelociRobot
 
 Battle results with 10000 rounds, random matrices and different matrixMaxAbsWeight values.

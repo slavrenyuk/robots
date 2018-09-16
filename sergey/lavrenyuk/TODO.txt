@@ -2,3 +2,4 @@
 2. add javadocs
 3. add project description to README file
 4. add logs to trainer and scorer
+5. bug - getDataFile() automatically creates a file, I did not expect that during coding, see PartitionedFiles

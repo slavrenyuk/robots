@@ -1,8 +1,10 @@
 package sergey.lavrenyuk.nn.training.io;
 
+import sergey.lavrenyuk.io.IO;
 import sergey.lavrenyuk.io.Writer;
 
 import java.io.BufferedOutputStream;
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -18,7 +20,8 @@ public class FileWriter<T> implements Writer<T> {
     }
 
     public FileWriter(String fileName, Function<T, byte[]> serialization, boolean append) throws IOException {
-        this.out = new BufferedOutputStream(new FileOutputStream(fileName, append));
+        File file = IO.getFile(fileName);
+        this.out = new BufferedOutputStream(new FileOutputStream(file, append));
         this.serialization = serialization;
     }
 
