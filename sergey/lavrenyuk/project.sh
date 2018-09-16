@@ -31,7 +31,10 @@ if [ $# -eq 1 ]
 then
     if [ $1 == "compile" ]
     then
-        compile "sergey/lavrenyuk/nn/training/Trainer.java"
+        # compile the robot
+        compile "sergey/lavrenyuk/Perceptron.java"
+        # compile tests, otherwise Robocode complains
+        compile "sergey/lavrenyuk/test/*.java"
     elif [ $1 == "clean" ]
     then
         clean

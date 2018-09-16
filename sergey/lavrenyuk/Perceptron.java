@@ -27,7 +27,7 @@ import static sergey.lavrenyuk.geometry.GeometryUtils.toBottomLeftBasedCoordinat
 import static sergey.lavrenyuk.geometry.GeometryUtils.toNormalizedCenterBasedCoordinates;
 import static sergey.lavrenyuk.geometry.GeometryUtils.toNormalizedMovement;
 
-public class MyRobot extends AdvancedRobot {
+public class Perceptron extends AdvancedRobot {
 
     private static final AtomicBoolean staticInitialized = new AtomicBoolean(false);
     private static Supplier<WeightMatrix> weightMatrixSupplier;
@@ -66,7 +66,7 @@ public class MyRobot extends AdvancedRobot {
         BATTLE_FIELD_HEIGHT = getBattleFieldHeight();
         ROBOT_SIZE = getWidth(); // the same as getHeight() and should be equal to 36
 
-        log = new Log(MyRobot.class);
+        log = new Log(Perceptron.class);
 
         neuralNetwork = new NeuralNetwork(weightMatrixSupplier.get());
 

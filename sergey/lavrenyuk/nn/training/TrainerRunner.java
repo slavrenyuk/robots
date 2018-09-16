@@ -1,6 +1,6 @@
 package sergey.lavrenyuk.nn.training;
 
-import sergey.lavrenyuk.MyRobot;
+import sergey.lavrenyuk.Perceptron;
 import sergey.lavrenyuk.io.Config;
 import sergey.lavrenyuk.io.IO;
 import sergey.lavrenyuk.io.Log;
@@ -30,8 +30,8 @@ import static sergey.lavrenyuk.io.PartitionedFiles.resolvePlaceholder;
 public class TrainerRunner {
 
     static { // initialize IO with our robot base directory
-        String robotClassName = MyRobot.class.getSimpleName();
-        File baseFolder = new File(MyRobot.class.getResource(".").getPath() + robotClassName + ".data");
+        String robotClassName = Perceptron.class.getSimpleName();
+        File baseFolder = new File(Perceptron.class.getResource(".").getPath() + robotClassName + ".data");
         String basePath = baseFolder.getAbsolutePath() + "/";
 
         IO.initialize(() -> System.out, fileName -> new File(basePath + fileName));
