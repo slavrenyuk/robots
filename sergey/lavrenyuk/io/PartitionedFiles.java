@@ -4,9 +4,6 @@ import java.io.File;
 import java.util.Iterator;
 import java.util.function.Supplier;
 
-// TODO add javadoc regarding the Robocode specific - getDataFile() creates a new file if not found,
-// there will be a lot of files and checking directory for file presence is not efficient,
-// thus there are some limitations in the implementation
 public class PartitionedFiles {
 
     private static final String PLACEHOLDER = "{}";
@@ -52,6 +49,11 @@ public class PartitionedFiles {
         }
     }
 
+    /**
+     * Iterates until there is no next file corresponding to the filePattern or the next file is empty.
+     * Interesting side effect caused by the Robocode environment specific - if an empty file is found, it is deleted.
+     * See the {@link FileIterator#next()} for details.
+     */
     public static class FileIterator implements Iterator<File> {
 
         private final FileSupplier supplier;
@@ -76,6 +78,12 @@ public class PartitionedFiles {
         public File next() {
             File result = nextFile;
             nextFile = supplier.get();
+            if (nextFile.length() == 0) {
+                // surprise - we just deleted an empty file
+                // Robocode automatically creates an empty file if it was not found
+                // if this empty file was actually present and we deleted it, well, nobody cares
+                nextFile.delete();
+            }
             return result;
         }
     }

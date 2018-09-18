@@ -89,8 +89,8 @@ public class Config {
 
     private static Properties loadProperties(String fileName) {
         File file = IO.getFile(fileName);
-        if (!file.exists()) {
-            throw new IllegalStateException(String.format("Property file '%s' not found", file.getAbsolutePath()));
+        if (!file.exists() || file.length() == 0) { // Robocode automatically creates an empty file if it was not found
+            throw new IllegalStateException(String.format("Property file '%s' not found or empty", file.getAbsolutePath()));
         }
         try {
             Properties properties = new Properties();

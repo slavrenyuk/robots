@@ -4,25 +4,21 @@
 
 3. add logs to trainer and scorer
 
-4. bug - getDataFile() automatically creates a file, I did not expect that during coding,
-        see PartitionedFiles.FileIterator which calls getDataFile() in advance
-        perhaps I should remove the FileIterator and use FileSupplier instead
-
-5. implement code to examine survivals file (e.g. show win ratio) and decide what survivors should go to a final file to be
+4. implement code to examine survivals file (e.g. show win ratio) and decide what survivors should go to a final file to be
         used in fighting mode
 
-6. implement fighting mode (? use different name ?)
+5. implement fighting mode (? use different name ?)
 
-7. survivors file is used as a backup file, but there is no option to recreate a population basing on survivors file,
+6. survivors file is used as a backup file, but there is no option to recreate a population basing on survivors file,
         but only on scored weight matrices
         UPD there is an indirect way to do that - copy survivors and use  as scored weight matrices file,
             but that won't work if number of survivors in the file is less than 'survivors' config property
 
-8. Test different robocode.cpu.constant. Located in robocode/config/robocode.properties
+7. Test different robocode.cpu.constant. Located in robocode/config/robocode.properties
         The value if measured in nanoseconds, it represents how much time robot can spent for a turn.
         Currently it is 6081774, which is 6 milliseconds. On the other hand, increasing the property may increase execution time.
         E.g., I can try 20 milliseconds, which is 20000000 nanoseconds. If it won't slow down the training,
         I should increase the value to prevent turns skipping because of the garbage collection (presumably).
         Add this info to MEMO.txt once tested and changed.
 
-9. remove scorer.startFileIndex property, it should be possible to find last by index analyzing the data folder
+8. remove scorer.startFileIndex property, it should be possible to find last by index analyzing the data folder

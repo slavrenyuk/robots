@@ -39,6 +39,12 @@ public class TestUtils {
         File testFile = IO.getFile(fileName);
         FileOutputStream out = new FileOutputStream(testFile);
         out.write(fileData);
+        out.flush();
+        out.close();
+    }
+
+    public static void createTestFile(String fileName) throws IOException {
+        IO.getFile(fileName).createNewFile();
     }
 
     public static void createTestFiles(String... fileNames) throws IOException {
