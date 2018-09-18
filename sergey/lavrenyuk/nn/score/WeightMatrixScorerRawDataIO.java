@@ -14,29 +14,30 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Iterator;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Supplier;
 
+// TODO document this class doesn't support multiple threads in parallel, but it supports different thread sequential access,
+// which may happen in the Robocode environment, observed when round ended because of too many skipped turns, which, in turn, presumably is caused by garbage collection
+// in that case battle thread performs some manipulation over the robot code instead of the robot's thread
 public class WeightMatrixScorerRawDataIO implements Reader<byte[]>, Writer<byte[]> {
-
-    private final AtomicBoolean closed = new AtomicBoolean(false);
 
     private final boolean robocodeEnvironment;
     private final int inputItemSize;
     private final int outputItemSize;
 
-    private int itemsRead = 0;
-    private int itemsWritten = 0;
-
     private final Iterator<File> inputFilesIterator;
     private final Supplier<File> outputFilesSupplier;
 
-    private InputStream currentInputFileStream;
-    private OutputStream currentOutputFileStream;
+    private volatile boolean closed = false;
+    private volatile int itemsRead = 0;
+    private volatile int itemsWritten = 0;
 
-    private boolean openNextOutputFileOnWrite;
-    private File previousInputFile;
-    private File currentInputFile;
+    private volatile InputStream currentInputFileStream;
+    private volatile OutputStream currentOutputFileStream;
+
+    private volatile boolean openNextOutputFileOnWrite;
+    private volatile File previousInputFile;
+    private volatile File currentInputFile;
 
     public WeightMatrixScorerRawDataIO(String inputFilePattern,
                                        String outputFilePattern,
@@ -46,25 +47,15 @@ public class WeightMatrixScorerRawDataIO implements Reader<byte[]>, Writer<byte[
                                        boolean robocodeEnvironment) throws IOException {
 
         this.robocodeEnvironment = robocodeEnvironment;
-
-        this.inputFilesIterator = new PartitionedFiles.FileIterator(inputFilePattern);
-        this.outputFilesSupplier = new PartitionedFiles.FileSupplier(outputFilePattern);
-
         this.inputItemSize = inputItemSize;
         this.outputItemSize = outputItemSize;
 
-        for (int i = 0; i < startFileIndex; i++) {
-            if (!this.inputFilesIterator.hasNext()) {
-                throw new IllegalArgumentException(String.format("Exception while skipping %d input files, only %d files found",
-                        startFileIndex, i));
-            }
-            this.inputFilesIterator.next();
-            this.outputFilesSupplier.get();
-        }
-
+        this.inputFilesIterator = new PartitionedFiles.FileIterator(inputFilePattern, startFileIndex);
+        this.outputFilesSupplier = new PartitionedFiles.FileSupplier(outputFilePattern, startFileIndex);
         if (!this.inputFilesIterator.hasNext()) {
             throw new IllegalArgumentException(String.format("No input files found for pattern '%s'", inputFilePattern));
         }
+
         this.currentInputFileStream = nextInputFile();
         this.currentOutputFileStream = nextOutputFile();
     }
@@ -118,11 +109,12 @@ public class WeightMatrixScorerRawDataIO implements Reader<byte[]>, Writer<byte[
 
     @Override
     public void close() throws IOException {
-        if (!closed.getAndSet(true)) {
+        if (!closed) {
             currentOutputFileStream.flush();
             currentOutputFileStream.close();
             currentInputFileStream.close();
             currentInputFile.delete();
+            closed = true;
         }
     }
 

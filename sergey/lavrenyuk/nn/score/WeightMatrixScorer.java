@@ -8,15 +8,18 @@ import sergey.lavrenyuk.nn.WeightMatrix;
 import java.io.IOException;
 import java.util.function.Supplier;
 
+// TODO document this class doesn't support multiple threads in parallel, but it supports different thread sequential access,
+// which may happen in the Robocode environment, observed when round ended because of too many skipped turns, which, in turn, presumably is caused by garbage collection
+// in that case battle thread performs some manipulation over the robot code instead of the robot's thread
 public class WeightMatrixScorer implements Supplier<WeightMatrix>, RoundResultConsumer {
 
     private final Reader<byte[]> dataReader;
     private final Writer<byte[]> dataWriter;
     private final int roundsPerMatrix;
 
-    private WeightMatrix currentMatrix;
-    private Score.Builder currentMatrixScore;
-    private int roundsWithCurrentMatrix;
+    private volatile WeightMatrix currentMatrix;
+    private volatile Score.Builder currentMatrixScore;
+    private volatile int roundsWithCurrentMatrix;
 
     public static WeightMatrixScorer create(String inputFilePattern,
                                             String outputFilePattern,

@@ -4,9 +4,12 @@ import java.io.File;
 import java.util.Iterator;
 import java.util.function.Supplier;
 
+// TODO add javadoc regarding the Robocode specific - getDataFile() creates a new file if not found,
+// there will be a lot of files and checking directory for file presence is not efficient,
+// thus there are some limitations in the implementation
 public class PartitionedFiles {
 
-    public static final String PLACEHOLDER = "{}";
+    private static final String PLACEHOLDER = "{}";
 
     public static class FileNameSupplier implements Supplier<String> {
 
@@ -14,11 +17,15 @@ public class PartitionedFiles {
         private int index;
 
         public FileNameSupplier(String filePattern) {
+            this(filePattern, 0);
+        }
+
+        public FileNameSupplier(String filePattern, int firstIndex) {
             if (!filePattern.contains(PLACEHOLDER)) {
                 throw new IllegalArgumentException(String.format("file pattern must contain %s placeholder", PLACEHOLDER));
             }
             this.filePattern = filePattern;
-            this.index = 0;
+            this.index = firstIndex;
         }
 
         @Override
@@ -35,6 +42,10 @@ public class PartitionedFiles {
             this.fileNameSupplier = new FileNameSupplier(filePattern);
         }
 
+        public FileSupplier(String filePattern, int firstIndex) {
+            this.fileNameSupplier = new FileNameSupplier(filePattern, firstIndex);
+        }
+
         @Override
         public File get() {
             return IO.getFile(fileNameSupplier.get());
@@ -48,6 +59,11 @@ public class PartitionedFiles {
 
         public FileIterator(String filePattern) {
             supplier = new FileSupplier(filePattern);
+            nextFile = supplier.get();
+        }
+
+        public FileIterator(String filePattern, int firstIndex) {
+            supplier = new FileSupplier(filePattern, firstIndex);
             nextFile = supplier.get();
         }
 

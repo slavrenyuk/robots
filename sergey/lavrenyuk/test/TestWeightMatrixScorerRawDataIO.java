@@ -79,7 +79,7 @@ public class TestWeightMatrixScorerRawDataIO {
                     }
                 },
                 IllegalArgumentException.class,
-                "Exception while skipping 3 input files, only 2 files found");
+                "No input files found for pattern 'input_test_file_part{}.dat'");
     }
 
     public void testUnexpectedRead() throws IOException {

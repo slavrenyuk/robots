@@ -2,16 +2,16 @@ package sergey.lavrenyuk;
 
 import robocode.AdvancedRobot;
 import robocode.BattleEndedEvent;
+import robocode.DeathEvent;
 import robocode.RobotStatus;
-import robocode.RoundEndedEvent;
 import robocode.Rules;
 import robocode.ScannedRobotEvent;
 import robocode.StatusEvent;
+import robocode.WinEvent;
 import robocode.util.Utils;
 import sergey.lavrenyuk.geometry.Data2D;
 import sergey.lavrenyuk.io.Config;
 import sergey.lavrenyuk.io.IO;
-import sergey.lavrenyuk.io.Log;
 import sergey.lavrenyuk.nn.NeuralNetwork;
 import sergey.lavrenyuk.nn.NeuralNetworkMode;
 import sergey.lavrenyuk.nn.score.RoundResultConsumer;
@@ -19,7 +19,6 @@ import sergey.lavrenyuk.nn.score.Score;
 import sergey.lavrenyuk.nn.WeightMatrix;
 
 import java.awt.Color;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Supplier;
 
 import static sergey.lavrenyuk.geometry.GeometryUtils.calculateCoordinates;
@@ -29,44 +28,42 @@ import static sergey.lavrenyuk.geometry.GeometryUtils.toNormalizedMovement;
 
 public class Perceptron extends AdvancedRobot {
 
-    private static final AtomicBoolean staticInitialized = new AtomicBoolean(false);
+    // fields can not be final, since initialization is possible only in run() method
+    private static boolean staticInitialized = false;
     private static Supplier<WeightMatrix> weightMatrixSupplier;
     private static RoundResultConsumer roundResultConsumer;
 
-    private final AtomicBoolean instanceInitialized = new AtomicBoolean(false);
+    private boolean instanceInitialized = false;
 
-    // can not be instantiated here as final, but using upper case as a style convention
+    // can not be final, see explanation at the beginning of fields declaration
+    // using upper case as a style convention
     private double MAX_ENERGY;
     private double BATTLE_FIELD_WIDTH;
     private double BATTLE_FIELD_HEIGHT;
     private double ROBOT_SIZE;
 
-    private Log log;
-
     private NeuralNetwork neuralNetwork;
 
-    private double enemyEnergy;
-    private Data2D enemyPosition;
-    private Data2D enemyMovement;
+    // volatile because of paranoia, should be updated by only one thread, but can not be tested
+    private volatile double enemyEnergy;
+    private volatile Data2D enemyPosition;
+    private volatile Data2D enemyMovement;
 
     @Override
     public void run() {
         IO.initialize(() -> out, this::getDataFile);
 
-        if (!staticInitialized.get()) {
+        if (!staticInitialized) {
             NeuralNetworkMode neuralNetworkMode = new NeuralNetworkMode(Config.getNeuralNetworkMode());
             weightMatrixSupplier = neuralNetworkMode.getWeightMatrixSupplier();
             roundResultConsumer = neuralNetworkMode.getRoundResultConsumer();
-
-            staticInitialized.set(true);
+            staticInitialized = true;
         }
 
         MAX_ENERGY = getEnergy();
         BATTLE_FIELD_WIDTH = getBattleFieldWidth();
         BATTLE_FIELD_HEIGHT = getBattleFieldHeight();
         ROBOT_SIZE = getWidth(); // the same as getHeight() and should be equal to 36
-
-        log = new Log(Perceptron.class);
 
         neuralNetwork = new NeuralNetwork(weightMatrixSupplier.get());
 
@@ -83,18 +80,20 @@ public class Perceptron extends AdvancedRobot {
         setColors(darkBlue, darkBlue, darkBlue, lightYellow, lightYellow);
 
         if (getOthers() > 1) {
-            log.error("This robot was designed for 1 to 1 battles, behaviour is unpredictable.");
+            throw new IllegalStateException("This robot was designed for 1 to 1 battles, behaviour is unpredictable.");
         }
 
-        instanceInitialized.set(true);
+        instanceInitialized = true;
     }
 
     @Override
-    public void onRoundEnded(RoundEndedEvent event) {
-        enemyEnergy = getOthers() > 0 ? enemyEnergy : 0.0;
-        roundResultConsumer.accept(new Score.RoundResult(
-                getOthers() == 0 && getEnergy() > 0.0,
-                (float) (getEnergy() - enemyEnergy)));
+    public void onWin(WinEvent event) {
+        roundResultConsumer.accept(new Score.RoundResult(true, (float) getEnergy()));
+    }
+
+    @Override
+    public void onDeath(DeathEvent event) {
+        roundResultConsumer.accept(new Score.RoundResult(false, (float) -enemyEnergy));
     }
 
     @Override
@@ -104,7 +103,7 @@ public class Perceptron extends AdvancedRobot {
 
     @Override
     public void onStatus(StatusEvent statusEvent) {
-        if (!instanceInitialized.get()) {
+        if (!instanceInitialized) {
             return;
         }
 
