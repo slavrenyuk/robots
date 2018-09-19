@@ -46,7 +46,7 @@ public class WeightMatrixScorer implements Supplier<WeightMatrix>, RoundResultCo
     }
 
     @Override
-    public WeightMatrix get() {
+    public synchronized WeightMatrix get() {
         if (roundsWithCurrentMatrix < roundsPerMatrix) {
             roundsWithCurrentMatrix++;
             return currentMatrix;
@@ -57,7 +57,7 @@ public class WeightMatrixScorer implements Supplier<WeightMatrix>, RoundResultCo
     }
 
     @Override
-    public void accept(Score.RoundResult roundResult) {
+    public synchronized void accept(Score.RoundResult roundResult) {
 
         currentMatrixScore.addRoundResult(roundResult);
 
@@ -74,7 +74,7 @@ public class WeightMatrixScorer implements Supplier<WeightMatrix>, RoundResultCo
     }
 
     @Override
-    public void close() {
+    public synchronized void close() {
         try {
             dataWriter.close();
             dataReader.close();

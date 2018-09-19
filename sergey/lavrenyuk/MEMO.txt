@@ -1,20 +1,29 @@
-1) Property to change robot data quota to 1Gb instead of default 200Kb.
-Also console quota must be updated, because of a lot of logs after 500 000 rounds.
-file:
-    - robocode/config/robocode.properties
-properties:
-    - robocode.robot.filesystem.quota=1000000000
-    - robocode.console.quota=81920
+1)  Several Robocode properties has to be changed in order for Perceptron to work well.
+    Robocode properties are located at robocode/config/robocode.properties file.
 
-2) Update application rendering and view preferences for speed. TODO document what exactly to do
+    1.1) robocode.robot.filesystem.quota=1000000000
+            This property is a max available disk space that robot can use, measured in bytes. I.e. the total size of all files
+            located under the robot data directory, which is '<ROBOT_NAME>.data' folder located near the robot class.
+            Default value is 200000, i.e. 200 Kb. The new value is 1 Gb. At most I used 500 000 serialized objects
+            each about 1 Kb, so I set 1 Gb to be sure everything is fine.
+    1.2) robocode.cpu.constant=20000000
+            Maximum time for a robot to complete a turn, measured in nanoseconds. Default value depends on the machine CPU,
+            for my machine it was 6000000 nanoseconds, or 6 milliseconds. The new value is 20 milliseconds.
+            If robot thread blocks for more than that time, it is considered as skipping turns. If robot skips too many turns
+            in a row it is disabled and looses a round. Generally Perceptron performs good with the default value, but about
+            once per 150 000 rounds it looses a round because of "too many turns skipped". Presumably that happens because
+            of the garbage collection and it is a known Robocode issue.
 
-3) First enemy is VelociRobot.
+2)  Update application rendering and view preferences for speed. TODO document what exactly to do - modify via config file
 
-4) Initial testing of optimal matrixMaxAbsWeight values.
-Battle results with 10000 rounds, random matrices and different matrixMaxAbsWeight values.
-matrixMaxAbsWeight,     winPercentage
-1,                      16.75%
-10,                     6.99%
-100,                    5.56%
-1000,                   5.57%
-10000,                  5.57%
+3)  First enemy is VelociRobot.
+
+4)  Initial testing of optimal matrixMaxAbsWeight values.
+    Battle results with 10000 rounds, random matrices and different matrixMaxAbsWeight values.
+
+    matrixMaxAbsWeight,     winPercentage
+    1,                      16.75%
+    10,                     6.99%
+    100,                    5.56%
+    1000,                   5.57%
+    10000,                  5.57%

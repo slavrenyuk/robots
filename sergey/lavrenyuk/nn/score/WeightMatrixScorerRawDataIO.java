@@ -29,8 +29,8 @@ public class WeightMatrixScorerRawDataIO implements Reader<byte[]>, Writer<byte[
     private final Supplier<File> outputFilesSupplier;
 
     private volatile boolean closed = false;
-    private volatile int itemsRead = 0;
-    private volatile int itemsWritten = 0;
+    private volatile int reads = 0;
+    private volatile int writes = 0;
 
     private volatile InputStream currentInputFileStream;
     private volatile OutputStream currentOutputFileStream;
@@ -61,17 +61,19 @@ public class WeightMatrixScorerRawDataIO implements Reader<byte[]>, Writer<byte[
     }
 
     @Override
-    public byte[] read() throws IOException {
+    public synchronized byte[] read() throws IOException {
 
-        if (itemsRead++ != itemsWritten) {
-            throw new IllegalStateException("Only sequential read / write methods calls are allowed");
+        if (reads != writes) {
+            throw new IllegalStateException(String.format("Read attempt failed - only sequential read / write methods calls " +
+                    "are allowed. Reads = %d, Writes = %d", reads, writes));
         }
+        reads++;
 
         byte[] result = new byte[inputItemSize];
         int bytesRead = currentInputFileStream.read(result);
 
         if (bytesRead == -1) {
-            itemsRead--;
+            reads--;
             if (inputFilesIterator.hasNext()) {
                 currentInputFileStream = nextInputFile();
                 openNextOutputFileOnWrite = true;
@@ -89,11 +91,13 @@ public class WeightMatrixScorerRawDataIO implements Reader<byte[]>, Writer<byte[
     }
 
     @Override
-    public void write(byte[] data) throws IOException {
+    public synchronized void write(byte[] data) throws IOException {
 
-        if (itemsRead != ++itemsWritten) {
-            throw new IllegalStateException("Only sequential read / write methods calls are allowed");
+        if (reads - 1 != writes) {
+            throw new IllegalStateException(String.format("Write attempt failed - only sequential read / write methods calls " +
+                    "are allowed. Reads = %d, Writes = %d", reads, writes));
         }
+        writes++;
 
         if (data.length != outputItemSize) {
             throw new IllegalStateException(String.format("Expected %d bytes, but received %d", outputItemSize, data.length));
@@ -108,7 +112,7 @@ public class WeightMatrixScorerRawDataIO implements Reader<byte[]>, Writer<byte[
     }
 
     @Override
-    public void close() throws IOException {
+    public synchronized void close() throws IOException {
         if (!closed) {
             currentOutputFileStream.flush();
             currentOutputFileStream.close();

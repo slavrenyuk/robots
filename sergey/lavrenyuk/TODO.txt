@@ -2,7 +2,7 @@
 
 2. add project description to README file
 
-3. add logs to trainer and scorer
+3. add logs to trainer
 
 4. implement code to examine survivals file (e.g. show win ratio) and decide what survivors should go to a final file to be
         used in fighting mode
@@ -14,11 +14,37 @@
         UPD there is an indirect way to do that - copy survivors and use  as scored weight matrices file,
             but that won't work if number of survivors in the file is less than 'survivors' config property
 
-7. Test different robocode.cpu.constant. Located in robocode/config/robocode.properties
-        The value if measured in nanoseconds, it represents how much time robot can spent for a turn.
-        Currently it is 6081774, which is 6 milliseconds. On the other hand, increasing the property may increase execution time.
-        E.g., I can try 20 milliseconds, which is 20000000 nanoseconds. If it won't slow down the training,
-        I should increase the value to prevent turns skipping because of the garbage collection (presumably).
-        Add this info to MEMO.txt once tested and changed.
+7. remove scorer.startFileIndex property, it should be possible to find last by index analyzing the data folder
 
-8. remove scorer.startFileIndex property, it should be possible to find last by index analyzing the data folder
+8. Bug still occurs (rarely though, about several times during 500 000 rounds)
+java.lang.IllegalStateException: Only sequential read / write methods calls are allowed
+	at sergey.lavrenyuk.nn.score.WeightMatrixScorerRawDataIO.read(WeightMatrixScorerRawDataIO.java:67)
+	at sergey.lavrenyuk.nn.score.WeightMatrixScorerRawDataIO.read(WeightMatrixScorerRawDataIO.java:22)
+	at sergey.lavrenyuk.nn.score.WeightMatrixScorer.read(WeightMatrixScorer.java:88)
+	at sergey.lavrenyuk.nn.score.WeightMatrixScorer.get(WeightMatrixScorer.java:55)
+	at sergey.lavrenyuk.nn.score.WeightMatrixScorer.get(WeightMatrixScorer.java:14)
+	at sergey.lavrenyuk.Perceptron.run(Perceptron.java:68)
+	at net.sf.robocode.host.proxies.HostingRobotProxy.callUserCode(HostingRobotProxy.java:274)
+	at net.sf.robocode.host.proxies.HostingRobotProxy.run(HostingRobotProxy.java:221)
+	at net.sf.robocode.host.proxies.BasicRobotProxy.run(BasicRobotProxy.java:44)
+	at java.lang.Thread.run(Thread.java:748)
+
+	what is strange - after that the battle did not ended spamming with that message
+
+    I hope I fixed this, let it be here for now for information.
+
+9. Test what events on win / on death / round ended are triggered when different exceptional situations occurs
+testing onDeath / onWin / onRoundEnded
+exception in run() - non of the above events triggered
+exception in an event handler - non of the above events triggered
+too many turns skipped - the same... fuck
+
+Think about robust solution which tolerates no scoring attempts or multiple scoring attempts in a round
+
+I hope I fixed this, let it be here for now for information.
+
+10. Document list of Robocode bugfeatures:
+    (1) empty file created if not found
+    (2) OnRoundEnded not triggered on exception, presumably both OnDeath and OnWin may trigger
+
+11. Very important for debug - implement file logging and log errors

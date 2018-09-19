@@ -94,7 +94,7 @@ public class TestWeightMatrixScorerRawDataIO {
                     }
                 },
                 IllegalStateException.class,
-                "Only sequential read / write methods calls are allowed");
+                "Read attempt failed - only sequential read / write methods calls are allowed. Reads = 1, Writes = 0");
     }
 
     public void testUnexpectedWrite() throws IOException {
@@ -110,7 +110,7 @@ public class TestWeightMatrixScorerRawDataIO {
                     }
                 },
                 IllegalStateException.class,
-                "Only sequential read / write methods calls are allowed");
+                "Write attempt failed - only sequential read / write methods calls are allowed. Reads = 1, Writes = 1");
     }
 
     private byte[] process(byte[] data) {

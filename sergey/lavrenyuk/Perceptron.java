@@ -2,12 +2,11 @@ package sergey.lavrenyuk;
 
 import robocode.AdvancedRobot;
 import robocode.BattleEndedEvent;
-import robocode.DeathEvent;
 import robocode.RobotStatus;
+import robocode.RoundEndedEvent;
 import robocode.Rules;
 import robocode.ScannedRobotEvent;
 import robocode.StatusEvent;
-import robocode.WinEvent;
 import robocode.util.Utils;
 import sergey.lavrenyuk.geometry.Data2D;
 import sergey.lavrenyuk.io.Config;
@@ -26,6 +25,7 @@ import static sergey.lavrenyuk.geometry.GeometryUtils.toBottomLeftBasedCoordinat
 import static sergey.lavrenyuk.geometry.GeometryUtils.toNormalizedCenterBasedCoordinates;
 import static sergey.lavrenyuk.geometry.GeometryUtils.toNormalizedMovement;
 
+// TODO document why everything is wrapped into try blocks
 public class Perceptron extends AdvancedRobot {
 
     // fields can not be final, since initialization is possible only in run() method
@@ -33,6 +33,12 @@ public class Perceptron extends AdvancedRobot {
     private static Supplier<WeightMatrix> weightMatrixSupplier;
     private static RoundResultConsumer roundResultConsumer;
 
+    // initially true, will be set to false in the run() method
+    // inspect run() for additional details
+    private static volatile boolean roundResultReported = true;
+
+    // need to have this flag since we can not fully initialize robot in a constructor,
+    // but only in a run() method and first onStatus event is issued before run() method
     private boolean instanceInitialized = false;
 
     // can not be final, see explanation at the beginning of fields declaration
@@ -42,93 +48,128 @@ public class Perceptron extends AdvancedRobot {
     private double BATTLE_FIELD_HEIGHT;
     private double ROBOT_SIZE;
 
+    // heart and brains of the robot
     private NeuralNetwork neuralNetwork;
 
-    // volatile because of paranoia, should be updated by only one thread, but can not be tested
-    private volatile double enemyEnergy;
-    private volatile Data2D enemyPosition;
-    private volatile Data2D enemyMovement;
+    // should be updated by only one thread, but can not be tested, thus volatile
+    // this values are normalized, i.e:
+    // - normalizedEnemyEnergy is scaled to have values from 0 to 1
+    // - normalizedEnemyPosition and normalizedEnemyMovement are scaled to have values from -1 to 1
+    // for additional info see prepareNeuralNetworkInput() method
+    private volatile double normalizedEnemyEnergy = 1; // full health
+    private volatile Data2D normalizedEnemyPosition = new Data2D(0, 0); // center of the battlefield
+    private volatile Data2D normalizedEnemyMovement = new Data2D(0, 0); // no movement
 
+    /**
+     * This method is called once at the beginning of each round. It is an entry point of the robot's logic.
+     * Here we have base robot class fully initialized and set up, not in the class constructor as we get used in the Java world.
+     * Keep in mind that first {@link #onStatus(StatusEvent)} happens before this method is called.
+     */
     @Override
     public void run() {
-        IO.initialize(() -> out, this::getDataFile);
+        try {
 
-        if (!staticInitialized) {
-            NeuralNetworkMode neuralNetworkMode = new NeuralNetworkMode(Config.getNeuralNetworkMode());
-            weightMatrixSupplier = neuralNetworkMode.getWeightMatrixSupplier();
-            roundResultConsumer = neuralNetworkMode.getRoundResultConsumer();
-            staticInitialized = true;
+            IO.initialize(() -> out, this::getDataFile);
+
+            if (!staticInitialized) {
+                NeuralNetworkMode neuralNetworkMode = new NeuralNetworkMode(Config.getNeuralNetworkMode());
+                weightMatrixSupplier = neuralNetworkMode.getWeightMatrixSupplier();
+                roundResultConsumer = neuralNetworkMode.getRoundResultConsumer();
+                staticInitialized = true;
+            }
+
+            MAX_ENERGY = getEnergy();
+            BATTLE_FIELD_WIDTH = getBattleFieldWidth();
+            BATTLE_FIELD_HEIGHT = getBattleFieldHeight();
+            ROBOT_SIZE = getWidth(); // the same as getHeight() and should be equal to 36
+
+            if (!roundResultReported) {
+                // round result was not reported in the previous round
+                // that may happen because of a nonrecoverable exception
+                // at least we should report a dummy score to not break the whole process
+                // there is a chance the we will fail during reporting, in that case there is nothing we can do
+                // also this will not help if we failed to report during the last round
+                roundResultConsumer.accept(new Score.RoundResult(false, (float) -MAX_ENERGY));
+            }
+            roundResultReported = false;
+
+            neuralNetwork = new NeuralNetwork(weightMatrixSupplier.get());
+
+            setAdjustGunForRobotTurn(true);
+            setAdjustRadarForGunTurn(true);
+
+            Color darkBlue = new Color(0, 30, 50);
+            Color lightYellow = new Color(220, 220, 200);
+            setColors(darkBlue, darkBlue, darkBlue, lightYellow, lightYellow);
+
+            if (getOthers() > 1) {
+                out.println("This robot was designed for 1 to 1 battles, behaviour is unpredictable.");
+            }
+
+            instanceInitialized = true;
+
+        } catch (Throwable t) {
+            out.println(t.getMessage());
         }
-
-        MAX_ENERGY = getEnergy();
-        BATTLE_FIELD_WIDTH = getBattleFieldWidth();
-        BATTLE_FIELD_HEIGHT = getBattleFieldHeight();
-        ROBOT_SIZE = getWidth(); // the same as getHeight() and should be equal to 36
-
-        neuralNetwork = new NeuralNetwork(weightMatrixSupplier.get());
-
-        // enemy data, which is set to initial rather than real values
-        enemyEnergy = getEnergy(); // assume it is the same as ours
-        enemyPosition = new Data2D(BATTLE_FIELD_WIDTH / 2, BATTLE_FIELD_HEIGHT / 2); // center of the field
-        enemyMovement = new Data2D(0.0, 0.0); // no movement
-
-        setAdjustGunForRobotTurn(true);
-        setAdjustRadarForGunTurn(true);
-
-        Color darkBlue = new Color(0, 30, 50);
-        Color lightYellow = new Color(220, 220, 200);
-        setColors(darkBlue, darkBlue, darkBlue, lightYellow, lightYellow);
-
-        if (getOthers() > 1) {
-            throw new IllegalStateException("This robot was designed for 1 to 1 battles, behaviour is unpredictable.");
-        }
-
-        instanceInitialized = true;
     }
 
     @Override
-    public void onWin(WinEvent event) {
-        roundResultConsumer.accept(new Score.RoundResult(true, (float) getEnergy()));
-    }
-
-    @Override
-    public void onDeath(DeathEvent event) {
-        roundResultConsumer.accept(new Score.RoundResult(false, (float) -enemyEnergy));
+    public void onRoundEnded(RoundEndedEvent event) {
+        try {
+            if (getOthers() == 0) {
+                normalizedEnemyEnergy = 0.0;
+            }
+            roundResultConsumer.accept(new Score.RoundResult(
+                    getEnergy() > 0.0 && getOthers() == 0,
+                    (float) (getEnergy() - normalizedEnemyEnergy * MAX_ENERGY)
+            ));
+            roundResultReported = true;
+        } catch (Throwable t) {
+            out.println(t.getMessage());
+        }
     }
 
     @Override
     public void onBattleEnded(BattleEndedEvent event) {
-        roundResultConsumer.close();
+        try {
+            roundResultConsumer.close();
+        } catch (Throwable t) {
+            out.println(t.getMessage());
+        }
     }
 
     @Override
     public void onStatus(StatusEvent statusEvent) {
-        if (!instanceInitialized) {
-            return;
-        }
+        try {
+            if (!instanceInitialized) {
+                return;
+            }
 
-        boolean enemyScanned = false;
-        double enemyBearingRadians = 0.0;
-        ScannedRobotEvent enemyInfo = null;
-        if (!getScannedRobotEvents().isEmpty()) {
-            // expecting only 1 scanned robot, this robot was designed for 1 to 1 battles
-            enemyInfo = getScannedRobotEvents().get(0);
-            enemyScanned = true;
-            enemyBearingRadians = enemyInfo.getBearingRadians();
-        }
+            boolean enemyScanned = false;
+            double enemyBearingRadians = 0.0;
+            ScannedRobotEvent enemyInfo = null;
+            if (!getScannedRobotEvents().isEmpty()) {
+                // expecting only 1 scanned robot, this robot was designed for 1 to 1 battles
+                enemyInfo = getScannedRobotEvents().get(0);
+                enemyScanned = true;
+                enemyBearingRadians = enemyInfo.getBearingRadians();
+            }
 
-        float[] input = prepareNeuralNetworkInput(statusEvent.getStatus(), enemyInfo);
-        float[] output = neuralNetwork.process(input);
-        issueInstructions(enemyScanned, enemyBearingRadians, output);
+            float[] input = prepareNeuralNetworkInput(statusEvent.getStatus(), enemyInfo);
+            float[] output = neuralNetwork.process(input);
+            issueInstructions(enemyScanned, enemyBearingRadians, output);
+        } catch (Throwable t) {
+            out.println(t.getMessage());
+        }
     }
 
     private float[] prepareNeuralNetworkInput(RobotStatus myInfo, ScannedRobotEvent enemyInfo) {
 
         // all values are normalized before passing to the neural network
-        double myEnergy = myInfo.getEnergy() / MAX_ENERGY;
-        Data2D myPosition = toNormalizedCenterBasedCoordinates(myInfo.getX(), myInfo.getY(),
+        double myNormalizedEnergy = myInfo.getEnergy() / MAX_ENERGY;
+        Data2D myNormalizedPosition = toNormalizedCenterBasedCoordinates(myInfo.getX(), myInfo.getY(),
                 BATTLE_FIELD_WIDTH, BATTLE_FIELD_HEIGHT);
-        Data2D myMovement = toNormalizedMovement(myInfo.getHeadingRadians(), myInfo.getVelocity(), Rules.MAX_VELOCITY);
+        Data2D myNormalizedMovement = toNormalizedMovement(myInfo.getHeadingRadians(), myInfo.getVelocity(), Rules.MAX_VELOCITY);
 
         // enemyInfo == null means no enemy was scanned
         // previous values will be used if no enemy was scanned
@@ -136,23 +177,23 @@ public class Perceptron extends AdvancedRobot {
             Data2D enemyCoordinates = calculateCoordinates(myInfo.getX(), myInfo.getY(),
                     myInfo.getHeadingRadians() + enemyInfo.getBearingRadians(), enemyInfo.getDistance());
 
-            this.enemyEnergy = enemyInfo.getEnergy();
-            this.enemyPosition = toNormalizedCenterBasedCoordinates(enemyCoordinates.getX(), enemyCoordinates.getY(),
+            this.normalizedEnemyEnergy = enemyInfo.getEnergy() / MAX_ENERGY;
+            this.normalizedEnemyPosition = toNormalizedCenterBasedCoordinates(enemyCoordinates.getX(), enemyCoordinates.getY(),
                     BATTLE_FIELD_WIDTH, BATTLE_FIELD_HEIGHT);
-            this.enemyMovement = toNormalizedMovement(enemyInfo.getHeadingRadians(), enemyInfo.getVelocity(), Rules.MAX_VELOCITY);
+            this.normalizedEnemyMovement = toNormalizedMovement(enemyInfo.getHeadingRadians(), enemyInfo.getVelocity(), Rules.MAX_VELOCITY);
         }
 
         float[] result = new float[WeightMatrix.INPUT_NEURONS];
-        result[0] = (float) myEnergy;
-        result[1] = (float) myPosition.getX();
-        result[2] = (float) myPosition.getY();
-        result[3] = (float) myMovement.getX();
-        result[4] = (float) myMovement.getY();
-        result[5] = (float) this.enemyEnergy;
-        result[6] = (float) this.enemyPosition.getX();
-        result[7] = (float) this.enemyPosition.getY();
-        result[8] = (float) this.enemyMovement.getX();
-        result[9] = (float) this.enemyMovement.getY();
+        result[0] = (float) myNormalizedEnergy;
+        result[1] = (float) myNormalizedPosition.getX();
+        result[2] = (float) myNormalizedPosition.getY();
+        result[3] = (float) myNormalizedMovement.getX();
+        result[4] = (float) myNormalizedMovement.getY();
+        result[5] = (float) this.normalizedEnemyEnergy;
+        result[6] = (float) this.normalizedEnemyPosition.getX();
+        result[7] = (float) this.normalizedEnemyPosition.getY();
+        result[8] = (float) this.normalizedEnemyMovement.getX();
+        result[9] = (float) this.normalizedEnemyMovement.getY();
         return result;
     }
 
