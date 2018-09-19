@@ -56,24 +56,7 @@ public class TestWeightMatrixScorerRawDataIO {
                 () -> {
                     try {
                         new WeightMatrixScorerRawDataIO("input_test_file_part{}.dat", "output_test_file_part{}.dat",
-                                INPUT_ITEM_SIZE, OUTPUT_ITEM_SIZE, 0, false);
-                    } catch (IOException ex) {
-                        throw new RuntimeException(ex);
-                    }
-                },
-                IllegalArgumentException.class,
-                "No input files found for pattern 'input_test_file_part{}.dat'");
-    }
-
-    public void testNoEnoughInputFiles() throws IOException {
-        createTestFile("input_test_file_part0.dat", new byte[] {0, 1, 2, 3, 4, 5});
-        createTestFile("input_test_file_part1.dat", new byte[] {6, 7, 8, 9, 10, 11});
-        final int startFileIndex = 3;
-        assertExceptionThrown(
-                () -> {
-                    try {
-                        new WeightMatrixScorerRawDataIO("input_test_file_part{}.dat", "output_test_file_part{}.dat",
-                                INPUT_ITEM_SIZE, OUTPUT_ITEM_SIZE, startFileIndex, false);
+                                INPUT_ITEM_SIZE, OUTPUT_ITEM_SIZE, false);
                     } catch (IOException ex) {
                         throw new RuntimeException(ex);
                     }
@@ -127,7 +110,7 @@ public class TestWeightMatrixScorerRawDataIO {
         createTestFile("input_test_file_part1.dat", new byte[] {6, 7, 8, 9, 10, 11});
         createTestFiles("output_test_file_part0.dat", "output_test_file_part1.dat");
         return new WeightMatrixScorerRawDataIO("input_test_file_part{}.dat", "output_test_file_part{}.dat",
-                INPUT_ITEM_SIZE, OUTPUT_ITEM_SIZE, 0, false);
+                INPUT_ITEM_SIZE, OUTPUT_ITEM_SIZE, false);
 
     }
 }

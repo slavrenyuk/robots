@@ -14,9 +14,7 @@
         UPD there is an indirect way to do that - copy survivors and use  as scored weight matrices file,
             but that won't work if number of survivors in the file is less than 'survivors' config property
 
-7. remove scorer.startFileIndex property, it should be possible to find last by index analyzing the data folder
-
-8. Bug still occurs (rarely though, about several times during 500 000 rounds)
+7. Bug still occurs (rarely though, about several times during 500 000 rounds)
 java.lang.IllegalStateException: Only sequential read / write methods calls are allowed
 	at sergey.lavrenyuk.nn.score.WeightMatrixScorerRawDataIO.read(WeightMatrixScorerRawDataIO.java:67)
 	at sergey.lavrenyuk.nn.score.WeightMatrixScorerRawDataIO.read(WeightMatrixScorerRawDataIO.java:22)
@@ -33,7 +31,7 @@ java.lang.IllegalStateException: Only sequential read / write methods calls are 
 
     I hope I fixed this, let it be here for now for information.
 
-9. Test what events on win / on death / round ended are triggered when different exceptional situations occurs
+8. Test what events on win / on death / round ended are triggered when different exceptional situations occurs
 testing onDeath / onWin / onRoundEnded
 exception in run() - non of the above events triggered
 exception in an event handler - non of the above events triggered
@@ -43,8 +41,10 @@ Think about robust solution which tolerates no scoring attempts or multiple scor
 
 I hope I fixed this, let it be here for now for information.
 
-10. Document list of Robocode bugfeatures:
+9. Document list of Robocode bugfeatures:
     (1) empty file created if not found
     (2) OnRoundEnded not triggered on exception, presumably both OnDeath and OnWin may trigger
 
-11. Very important for debug - implement file logging and log errors
+10. Very important for debug - implement file logging and log errors
+
+11. check partitioned files unit tests coverage

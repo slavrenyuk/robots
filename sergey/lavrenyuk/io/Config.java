@@ -37,10 +37,6 @@ public class Config {
         return getInteger("scorer.roundsPerMatrix");
     }
 
-    public static Integer getScorerStartFileIndex() {
-        return getInteger("scorer.startFileIndex");
-    }
-
     public static Integer getTrainerMatricesPerOutputFile() {
         return getInteger("trainer.matricesPerOutputFile");
     }

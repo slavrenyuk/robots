@@ -20,7 +20,7 @@ public class PartitionedFileReader<T> implements Reader<T> {
     private InputStream in;
 
     public PartitionedFileReader(String filePattern, int itemSize, Function<byte[], T> deserialization) throws IOException{
-        this.fileIterator = new PartitionedFiles.FileIterator(filePattern);
+        this.fileIterator = PartitionedFiles.asIterator(filePattern);
         this.dataBuffer = new byte[itemSize];
         this.deserialization = deserialization;
         if (fileIterator.hasNext()) {

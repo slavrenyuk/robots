@@ -69,7 +69,7 @@ public class Perceptron extends AdvancedRobot {
     public void run() {
         try {
 
-            IO.initialize(() -> out, this::getDataFile);
+            IO.initialize(this.out, this.getDataDirectory(), this::getDataFile);
 
             if (!staticInitialized) {
                 NeuralNetworkMode neuralNetworkMode = new NeuralNetworkMode(Config.getNeuralNetworkMode());

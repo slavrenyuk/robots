@@ -1,103 +1,153 @@
 package sergey.lavrenyuk.io;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.Iterator;
+import java.util.List;
 import java.util.function.Supplier;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
 public class PartitionedFiles {
 
     private static final String PLACEHOLDER = "{}";
 
-    public static class FileNameSupplier implements Supplier<String> {
-
-        private final String filePattern;
-        private int index;
-
-        public FileNameSupplier(String filePattern) {
-            this(filePattern, 0);
-        }
-
-        public FileNameSupplier(String filePattern, int firstIndex) {
-            if (!filePattern.contains(PLACEHOLDER)) {
-                throw new IllegalArgumentException(String.format("file pattern must contain %s placeholder", PLACEHOLDER));
-            }
-            this.filePattern = filePattern;
-            this.index = firstIndex;
-        }
-
-        @Override
-        public String get() {
-            return filePattern.replace(PLACEHOLDER, Integer.toString(index++));
-        }
+    public static boolean exists(String filePattern) {
+        return asStream(filePattern).findAny().isPresent();
     }
 
-    public static class FileSupplier implements Supplier<File> {
+    public static String nextFileName(String filePattern) {
 
-        private final FileNameSupplier fileNameSupplier;
+        Pattern pattern = fileNamePattern(filePattern);
+        int maxFileIndex = -1;
 
-        public FileSupplier(String filePattern) {
-            this.fileNameSupplier = new FileNameSupplier(filePattern);
+        for (String fileName : directory(filePattern).list()) {
+            Matcher matcher = pattern.matcher(fileName);
+            if (matcher.matches()) {
+                int fileIndex = Integer.parseInt(matcher.group(1));
+                if (fileIndex > maxFileIndex) {
+                    maxFileIndex = fileIndex;
+                }
+            }
+        }
+        return resolvePlaceholder(filePattern, maxFileIndex + 1);
+    }
+
+    public static Iterable<Integer> getFileIndexes(String filePattern) {
+
+        Pattern pattern = fileNamePattern(filePattern);
+        List<Integer> result = new ArrayList<>();
+
+        for (String fileName : directory(filePattern).list()) {
+            Matcher matcher = pattern.matcher(fileName);
+            if (matcher.matches()) {
+                result.add(Integer.valueOf(matcher.group(1)));
+            }
         }
 
-        public FileSupplier(String filePattern, int firstIndex) {
-            this.fileNameSupplier = new FileNameSupplier(filePattern, firstIndex);
+        Collections.sort(result);
+        return result;
+    }
+
+    public static Stream<File> asStream(String filePattern) {
+        Pattern pattern = fileNamePattern(filePattern);
+        File[] files = directory(filePattern).listFiles((dir, name) -> pattern.matcher(name).matches());
+        return Arrays.stream(files);
+    }
+
+    public static Supplier<File> asSupplier(String filePattern) {
+        return new FileSupplier(filePattern, new InfiniteIndexIterator());
+    }
+
+    public static Supplier<File> asSupplier(String filePattern, Iterator<Integer> fileIndexIterator) {
+        return new FileSupplier(filePattern, fileIndexIterator);
+    }
+
+    public static Iterator<File> asIterator(String filePattern) {
+        return new FileIterator(filePattern, getFileIndexes(filePattern).iterator());
+    }
+
+    public static Iterator<File> asIterator(String filePattern, Iterator<Integer> fileIndexIterator) {
+        return new FileIterator(filePattern, fileIndexIterator);
+    }
+
+    private static class FileSupplier implements Supplier<File> {
+
+        private final Iterator<File> fileIterator;
+
+        FileSupplier(String filePattern, Iterator<Integer> fileIndexIterator) {
+            this.fileIterator = new FileIterator(filePattern, fileIndexIterator);
         }
 
         @Override
         public File get() {
-            return IO.getFile(fileNameSupplier.get());
+            return fileIterator.hasNext()
+                    ? fileIterator.next()
+                    : null;
         }
     }
 
-    /**
-     * Iterates until there is no next file corresponding to the filePattern or the next file is empty.
-     * Interesting side effect caused by the Robocode environment specific - if an empty file is found, it is deleted.
-     * See the {@link FileIterator#next()} for details.
-     */
-    public static class FileIterator implements Iterator<File> {
+    private static class FileIterator implements Iterator<File> {
 
-        private final FileSupplier supplier;
-        private File nextFile;
+        private final String filePattern;
+        private final Iterator<Integer> fileIndexIterator;
 
-        public FileIterator(String filePattern) {
-            supplier = new FileSupplier(filePattern);
-            nextFile = supplier.get();
-        }
-
-        public FileIterator(String filePattern, int firstIndex) {
-            supplier = new FileSupplier(filePattern, firstIndex);
-            nextFile = supplier.get();
+        FileIterator(String filePattern, Iterator<Integer> fileIndexIterator) {
+            if (!filePattern.contains(PLACEHOLDER)) {
+                throw new IllegalArgumentException(String.format("file pattern must contain %s placeholder", PLACEHOLDER));
+            }
+            this.filePattern = filePattern;
+            this.fileIndexIterator = fileIndexIterator;
         }
 
         @Override
         public boolean hasNext() {
-            return nextFile.exists();
+            return fileIndexIterator.hasNext();
         }
 
         @Override
         public File next() {
-            File result = nextFile;
-            nextFile = supplier.get();
-            if (nextFile.length() == 0) {
-                // surprise - we just deleted an empty file
-                // Robocode automatically creates an empty file if it was not found
-                // if this empty file was actually present and we deleted it, well, nobody cares
-                nextFile.delete();
-            }
-            return result;
+            return IO.getFile(resolvePlaceholder(filePattern, fileIndexIterator.next()));
         }
     }
 
-    public static String resolvePlaceholder(String filePattern, int index) {
-        return filePattern.replace(PLACEHOLDER, Integer.toString(index));
+    private static String resolvePlaceholder(String fileNamePattern, int index) {
+        return fileNamePattern.replace(PLACEHOLDER, Integer.toString(index));
     }
 
-    public static String findNextAvailableFileName(String filePattern) {
-        FileNameSupplier fileNameSupplier = new FileNameSupplier(filePattern);
-        String fileName = fileNameSupplier.get();
-        while (IO.getFile(fileName).exists()) {
-            fileName = fileNameSupplier.get();
+    private static Pattern fileNamePattern(String filePathPattern) {
+        if (!filePathPattern.contains(PLACEHOLDER)) {
+            throw new IllegalArgumentException(String.format("file pattern must contain %s placeholder", PLACEHOLDER));
         }
-        return fileName;
+        return Pattern.compile(fileName(filePathPattern).replace("{}", "(\\d+)"));
+    }
+
+    private static String fileName(String filePath) {
+        return filePath.substring(filePath.lastIndexOf(File.separatorChar) + 1);
+    }
+
+    private static File directory(String filePath) {
+        int lastSeparator = filePath.lastIndexOf(File.separatorChar);
+        return lastSeparator == -1
+                ? IO.getBaseDirectory()
+                : IO.getFile(filePath.substring(0, lastSeparator));
+    }
+
+    private static class InfiniteIndexIterator implements Iterator<Integer> {
+
+        private int index = 0;
+
+        @Override
+        public boolean hasNext() {
+            return true;
+        }
+
+        @Override
+        public Integer next() {
+            return index++;
+        }
     }
 }

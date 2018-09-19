@@ -89,7 +89,7 @@ public class Runner {
         classTestFolder.mkdir();
 
         String classTestFolderName = classTestFolder.getAbsolutePath() + "/";
-        IO.initialize(() -> System.out, fileName -> new File(classTestFolderName + fileName));
+        IO.initialize(System.out, classTestFolder, fileName -> new File(classTestFolderName + fileName));
 
         return classTestFolder;
     }

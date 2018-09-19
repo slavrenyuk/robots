@@ -27,7 +27,6 @@ public class NeuralNetworkMode {
             WeightMatrixScorer weightMatrixScorer = WeightMatrixScorer.create(
                     Config.getNeuralNetworkWeightMatrixFilePattern(),
                     Config.getNeuralNetworkScoredWeightMatrixFilePattern(),
-                    Config.getScorerStartFileIndex(),
                     Config.getScorerRoundsPerMatrix(),
                     true);
             this.weightMatrixSupplier = weightMatrixScorer;

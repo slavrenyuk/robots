@@ -43,15 +43,15 @@ public class WeightMatrixScorerRawDataIO implements Reader<byte[]>, Writer<byte[
                                        String outputFilePattern,
                                        int inputItemSize,
                                        int outputItemSize,
-                                       int startFileIndex,
                                        boolean robocodeEnvironment) throws IOException {
 
         this.robocodeEnvironment = robocodeEnvironment;
         this.inputItemSize = inputItemSize;
         this.outputItemSize = outputItemSize;
 
-        this.inputFilesIterator = new PartitionedFiles.FileIterator(inputFilePattern, startFileIndex);
-        this.outputFilesSupplier = new PartitionedFiles.FileSupplier(outputFilePattern, startFileIndex);
+        Iterable<Integer> fileIndexes = PartitionedFiles.getFileIndexes(inputFilePattern);
+        this.inputFilesIterator = PartitionedFiles.asIterator(inputFilePattern, fileIndexes.iterator());
+        this.outputFilesSupplier = PartitionedFiles.asSupplier(outputFilePattern, fileIndexes.iterator());
         if (!this.inputFilesIterator.hasNext()) {
             throw new IllegalArgumentException(String.format("No input files found for pattern '%s'", inputFilePattern));
         }

@@ -4,6 +4,7 @@ import sergey.lavrenyuk.Perceptron;
 import sergey.lavrenyuk.io.Config;
 import sergey.lavrenyuk.io.IO;
 import sergey.lavrenyuk.io.Log;
+import sergey.lavrenyuk.io.PartitionedFiles;
 import sergey.lavrenyuk.io.Serializer;
 import sergey.lavrenyuk.io.Reader;
 import sergey.lavrenyuk.io.Writer;
@@ -23,9 +24,8 @@ import java.nio.ByteBuffer;
 import java.util.Scanner;
 import java.util.function.Supplier;
 
-import static sergey.lavrenyuk.io.PartitionedFiles.findNextAvailableFileName;
-import static sergey.lavrenyuk.io.PartitionedFiles.FileIterator;
-import static sergey.lavrenyuk.io.PartitionedFiles.resolvePlaceholder;
+import static sergey.lavrenyuk.io.PartitionedFiles.asStream;
+import static sergey.lavrenyuk.io.PartitionedFiles.nextFileName;
 
 public class TrainerRunner {
 
@@ -34,7 +34,7 @@ public class TrainerRunner {
         File baseFolder = new File(Perceptron.class.getResource(".").getPath() + robotClassName + ".data");
         String basePath = baseFolder.getAbsolutePath() + "/";
 
-        IO.initialize(() -> System.out, fileName -> new File(basePath + fileName));
+        IO.initialize(System.out, baseFolder, fileName -> new File(basePath + fileName));
     }
 
     private final Log log = new Log(TrainerRunner.class);
@@ -88,8 +88,15 @@ public class TrainerRunner {
 
             } else if ("T".equalsIgnoreCase(input)) { // training
 
-                File firstInputFile = IO.getFile(resolvePlaceholder(CURRENT_GENERATION_FILE_PATTERN, 0));
-                if (!firstInputFile.exists()) {
+                if (PartitionedFiles.exists(CURRENT_GENERATION_FILE_PATTERN)) {
+                    printPopulationInfoShort();
+
+                    log.println("\nConfirm and continue? Y/N");
+
+                    if ("Y".equalsIgnoreCase(scanner.nextLine())) {
+                        performTraining();
+                    }
+                } else {
                     log.println("There was no input files with pattern '%s' found.", CURRENT_GENERATION_FILE_PATTERN);
                     log.println("%d random weight matrices will be created as an initial population.", POPULATION);
 
@@ -97,14 +104,6 @@ public class TrainerRunner {
 
                     if ("Y".equalsIgnoreCase(scanner.nextLine())) {
                         performInitialTraining();
-                    }
-                } else {
-                    printPopulationInfoShort();
-
-                    log.println("\nConfirm and continue? Y/N");
-
-                    if ("Y".equalsIgnoreCase(scanner.nextLine())) {
-                        performTraining();
                     }
                 }
 
@@ -194,7 +193,7 @@ public class TrainerRunner {
                 Serializer::serializeWeightMatrix);
 
         Writer<ScoredWeightMatrix> survivorsWriter = new FileWriter<>(
-                findNextAvailableFileName(SURVIVORS_FILE_PATTERN),
+                nextFileName(SURVIVORS_FILE_PATTERN),
                 Serializer::serializeScoredWeightMatrix);
 
         Writer<Float> winRatioWriter = new FileWriter<>(
@@ -202,12 +201,7 @@ public class TrainerRunner {
                 floatValue -> ByteBuffer.wrap(new byte[Float.BYTES]).putFloat(floatValue).array(),
                 true);
 
-        Runnable currentGenerationRemover = () -> {
-            FileIterator fileIterator = new FileIterator(CURRENT_GENERATION_FILE_PATTERN);
-            while (fileIterator.hasNext()) {
-                fileIterator.next().delete();
-            }
-        };
+        Runnable currentGenerationRemover = () -> asStream(CURRENT_GENERATION_FILE_PATTERN).forEach(File::delete);
 
         Supplier<Integer> matrixMaxAbsWeightGenerator = new IntGeneratorFromString(MATRIX_MAX_ABS_WEIGHT_STRING);
 

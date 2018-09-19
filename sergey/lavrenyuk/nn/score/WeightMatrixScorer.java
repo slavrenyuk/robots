@@ -23,13 +23,12 @@ public class WeightMatrixScorer implements Supplier<WeightMatrix>, RoundResultCo
 
     public static WeightMatrixScorer create(String inputFilePattern,
                                             String outputFilePattern,
-                                            int startFileIndex,
                                             int roundsPerMatrix,
                                             boolean robocodeEnvironment) {
         WeightMatrixScorerRawDataIO rawDataIO;
         try {
              rawDataIO = new WeightMatrixScorerRawDataIO(inputFilePattern, outputFilePattern, WeightMatrix.SIZE_IN_BYTES,
-                     ScoredWeightMatrix.SIZE_IN_BYTES, startFileIndex, robocodeEnvironment);
+                     ScoredWeightMatrix.SIZE_IN_BYTES, robocodeEnvironment);
         } catch (IOException ex) {
             throw new RuntimeException(ex);
         }

@@ -21,7 +21,7 @@ public class PartitionedFileWriter<T> implements Writer<T> {
     private int itemsWritten;
 
     public PartitionedFileWriter(String filePattern, int itemsPerFile, Function<T, byte[]> serialization) throws IOException {
-        this.fileSupplier = new PartitionedFiles.FileSupplier(filePattern);
+        this.fileSupplier = PartitionedFiles.asSupplier(filePattern);
         this.itemsPerFile = itemsPerFile;
         this.serialization = serialization;
         this.out = nextOutputFileStream();

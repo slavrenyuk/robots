@@ -3,28 +3,41 @@ package sergey.lavrenyuk.io;
 import java.io.File;
 import java.io.PrintStream;
 import java.util.function.Function;
-import java.util.function.Supplier;
 
 public class IO {
 
     private IO() {}
 
-    private static Supplier<PrintStream> consoleSupplier =
-            () -> { throw new IllegalStateException("Uninitialized IO"); };
+    private static PrintStream console;
 
-    private static Function<String, File> fileAccessor =
-            (fileName) -> { throw new IllegalStateException("Uninitialized IO"); };
+    private static File baseDirectory;
 
-    public static void initialize(Supplier<PrintStream> consoleSupplier, Function<String, File> fileAccessor) {
-        IO.consoleSupplier = consoleSupplier;
+    private static Function<String, File> fileAccessor;
+
+    public static void initialize(PrintStream console, File baseDirectory, Function<String, File> fileAccessor) {
+        IO.console = console;
+        IO.baseDirectory = baseDirectory;
         IO.fileAccessor = fileAccessor;
     }
 
     public static PrintStream getConsole() {
-        return consoleSupplier.get();
+        if (console == null) {
+            throw new RuntimeException("Uninitialized IO");
+        }
+        return console;
+    }
+
+    public static File getBaseDirectory() {
+        if (console == null) {
+            throw new RuntimeException("Uninitialized IO");
+        }
+        return baseDirectory;
     }
 
     public static File getFile(String fileName) {
+        if (fileAccessor == null) {
+            throw new RuntimeException("Uninitialized IO");
+        }
         return fileAccessor.apply(fileName);
     }
 }
