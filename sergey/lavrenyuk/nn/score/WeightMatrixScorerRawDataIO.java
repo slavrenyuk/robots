@@ -116,8 +116,15 @@ public class WeightMatrixScorerRawDataIO implements Reader<byte[]>, Writer<byte[
         if (!closed) {
             currentOutputFileStream.flush();
             currentOutputFileStream.close();
+
+            boolean endOfInputFileReached = (currentInputFileStream.read() == -1);
+            boolean allItemsWritten = (reads == writes);
+
             currentInputFileStream.close();
-            currentInputFile.delete();
+            if (endOfInputFileReached && allItemsWritten) {
+                currentInputFile.delete();
+            }
+
             closed = true;
         }
     }

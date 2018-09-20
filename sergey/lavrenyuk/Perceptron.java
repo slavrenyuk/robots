@@ -11,6 +11,7 @@ import robocode.util.Utils;
 import sergey.lavrenyuk.geometry.Data2D;
 import sergey.lavrenyuk.io.Config;
 import sergey.lavrenyuk.io.IO;
+import sergey.lavrenyuk.io.Log;
 import sergey.lavrenyuk.nn.NeuralNetwork;
 import sergey.lavrenyuk.nn.NeuralNetworkMode;
 import sergey.lavrenyuk.nn.score.RoundResultConsumer;
@@ -28,25 +29,41 @@ import static sergey.lavrenyuk.geometry.GeometryUtils.toNormalizedMovement;
 // TODO document why everything is wrapped into try blocks
 public class Perceptron extends AdvancedRobot {
 
-    // fields can not be final, since initialization is possible only in run() method
+    // we have a limitation on initializing static and final fields
+    // base robot class is fully initialized and set up only in the run() method
     private static boolean staticInitialized = false;
     private static Supplier<WeightMatrix> weightMatrixSupplier;
     private static RoundResultConsumer roundResultConsumer;
 
+    // can not be final, see explanation at the beginning of the fields declaration
+    // using upper case as a style convention
+    private static double MAX_ENERGY;
+    private static double BATTLE_FIELD_WIDTH;
+    private static double BATTLE_FIELD_HEIGHT;
+    private static double ROBOT_SIZE;
+
+    // maximum number of rounds ended with nonrecoverable exception for robot to get disabled
+    // we will anyway get sporadic exceptions, e.g. the robot thread may get stuck because of too long garbage collection
+    private static final int ROUNDS_FAILED_THRESHOLD = 20;
+
+    // number of rounds ended with nonrecoverable exception
+    private static volatile int roundsFailed = 0;
+
     // initially true, will be set to false in the run() method
-    // inspect run() for additional details
+    // is checked at the beginning of each round to indicate that previous round has failed. unfortunately there is no other way
+    // to detect round failure, since robot thread is usually get stuck and forced stop on nonrecoverable exception
     private static volatile boolean roundResultReported = true;
+
+    // robot may be disabled because of to many round failures
+    // that is done to mitigate cases when an unrecoverable exception causes all consecutive rounds to fail
+    private static volatile boolean disabled = false;
 
     // need to have this flag since we can not fully initialize robot in a constructor,
     // but only in a run() method and first onStatus event is issued before run() method
     private boolean instanceInitialized = false;
 
-    // can not be final, see explanation at the beginning of fields declaration
-    // using upper case as a style convention
-    private double MAX_ENERGY;
-    private double BATTLE_FIELD_WIDTH;
-    private double BATTLE_FIELD_HEIGHT;
-    private double ROBOT_SIZE;
+    // console logger
+    private Log log;
 
     // heart and brains of the robot
     private NeuralNetwork neuralNetwork;
@@ -66,30 +83,49 @@ public class Perceptron extends AdvancedRobot {
      * Keep in mind that first {@link #onStatus(StatusEvent)} happens before this method is called.
      */
     @Override
-    public void run() {
+    public synchronized void run() {
         try {
 
+            if (disabled) { // do not do anything if the robot is disabled because of too many unrecoverable exceptions
+                setColors(Color.darkGray, Color.darkGray, Color.darkGray, Color.darkGray, Color.darkGray);
+                return;
+            }
+
+            // IO has to be initialized each turn, but before static fields one-time initialization
             IO.initialize(this.out, this.getDataDirectory(), this::getDataFile);
 
+            log = new Log(Perceptron.class);
+
+            // static fields one-time initialization
             if (!staticInitialized) {
                 NeuralNetworkMode neuralNetworkMode = new NeuralNetworkMode(Config.getNeuralNetworkMode());
                 weightMatrixSupplier = neuralNetworkMode.getWeightMatrixSupplier();
                 roundResultConsumer = neuralNetworkMode.getRoundResultConsumer();
+
+                MAX_ENERGY = getEnergy();
+                BATTLE_FIELD_WIDTH = getBattleFieldWidth();
+                BATTLE_FIELD_HEIGHT = getBattleFieldHeight();
+                ROBOT_SIZE = getWidth(); // the same as getHeight() and should be equal to 36
+
                 staticInitialized = true;
             }
 
-            MAX_ENERGY = getEnergy();
-            BATTLE_FIELD_WIDTH = getBattleFieldWidth();
-            BATTLE_FIELD_HEIGHT = getBattleFieldHeight();
-            ROBOT_SIZE = getWidth(); // the same as getHeight() and should be equal to 36
-
+            // round result was not reported in the previous round
+            // that may happen because of a nonrecoverable exception
+            // at least we should report a dummy score to not break the whole process
+            // there is a chance the we will fail during reporting, in that case there is nothing we can do
+            // also this will not help if we failed to report during the last round
             if (!roundResultReported) {
-                // round result was not reported in the previous round
-                // that may happen because of a nonrecoverable exception
-                // at least we should report a dummy score to not break the whole process
-                // there is a chance the we will fail during reporting, in that case there is nothing we can do
-                // also this will not help if we failed to report during the last round
+
                 roundResultConsumer.accept(new Score.RoundResult(false, (float) -MAX_ENERGY));
+
+                roundsFailed++;
+
+                if (roundsFailed >= ROUNDS_FAILED_THRESHOLD) {
+                    disabled = true;
+                    setColors(Color.darkGray, Color.darkGray, Color.darkGray, Color.darkGray, Color.darkGray);
+                    return;
+                }
             }
             roundResultReported = false;
 
@@ -103,43 +139,22 @@ public class Perceptron extends AdvancedRobot {
             setColors(darkBlue, darkBlue, darkBlue, lightYellow, lightYellow);
 
             if (getOthers() > 1) {
-                out.println("This robot was designed for 1 to 1 battles, behaviour is unpredictable.");
+                log.error("This robot was designed for 1 to 1 battles, behaviour is unpredictable.");
             }
 
             instanceInitialized = true;
 
         } catch (Throwable t) {
-            out.println(t.getMessage());
+            log.error(t.getMessage());
         }
     }
 
     @Override
-    public void onRoundEnded(RoundEndedEvent event) {
-        try {
-            if (getOthers() == 0) {
-                normalizedEnemyEnergy = 0.0;
-            }
-            roundResultConsumer.accept(new Score.RoundResult(
-                    getEnergy() > 0.0 && getOthers() == 0,
-                    (float) (getEnergy() - normalizedEnemyEnergy * MAX_ENERGY)
-            ));
-            roundResultReported = true;
-        } catch (Throwable t) {
-            out.println(t.getMessage());
+    public synchronized void onStatus(StatusEvent statusEvent) {
+        if (disabled) { // do not do anything if the robot is disabled because of too many unrecoverable exceptions
+            return;
         }
-    }
 
-    @Override
-    public void onBattleEnded(BattleEndedEvent event) {
-        try {
-            roundResultConsumer.close();
-        } catch (Throwable t) {
-            out.println(t.getMessage());
-        }
-    }
-
-    @Override
-    public void onStatus(StatusEvent statusEvent) {
         try {
             if (!instanceInitialized) {
                 return;
@@ -159,7 +174,41 @@ public class Perceptron extends AdvancedRobot {
             float[] output = neuralNetwork.process(input);
             issueInstructions(enemyScanned, enemyBearingRadians, output);
         } catch (Throwable t) {
-            out.println(t.getMessage());
+            log.error(t.getMessage());
+        }
+    }
+
+    @Override
+    public synchronized void onRoundEnded(RoundEndedEvent event) {
+        if (disabled) { // do not do anything if the robot is disabled because of too many unrecoverable exceptions
+            return;
+        }
+
+        try {
+            if (getOthers() == 0) {
+                normalizedEnemyEnergy = 0.0;
+            }
+            roundResultConsumer.accept(new Score.RoundResult(
+                    getEnergy() > 0.0 && getOthers() == 0,
+                    (float) (getEnergy() - normalizedEnemyEnergy * MAX_ENERGY)
+            ));
+            roundResultReported = true;
+        } catch (Throwable t) {
+            log.error(t.getMessage());
+        }
+    }
+
+    @Override
+    public synchronized void onBattleEnded(BattleEndedEvent event) {
+        try {
+            String failedRoundsMessage = (roundsFailed == 0)
+                    ? "No rounds failed with a nonrecoverable exception."
+                    : String.format("Totally %d rounds failed with a nonrecoverable exception.", roundsFailed);
+            log.info(failedRoundsMessage);
+
+            roundResultConsumer.close();
+        } catch (Throwable t) {
+            log.error(t.getMessage());
         }
     }
 

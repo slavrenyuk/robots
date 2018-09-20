@@ -2,49 +2,20 @@
 
 2. add project description to README file
 
-3. add logs to trainer
-
-4. implement code to examine survivals file (e.g. show win ratio) and decide what survivors should go to a final file to be
+3. implement code to examine survivals file (e.g. show win ratio) and decide what survivors should go to a final file to be
         used in fighting mode
 
-5. implement fighting mode (? use different name ?)
+4. implement fighting mode (? use different name ?)
 
-6. survivors file is used as a backup file, but there is no option to recreate a population basing on survivors file,
+5. survivors file is used as a backup file, but there is no option to recreate a population basing on survivors file,
         but only on scored weight matrices
         UPD there is an indirect way to do that - copy survivors and use  as scored weight matrices file,
             but that won't work if number of survivors in the file is less than 'survivors' config property
 
-7. Bug still occurs (rarely though, about several times during 500 000 rounds)
-java.lang.IllegalStateException: Only sequential read / write methods calls are allowed
-	at sergey.lavrenyuk.nn.score.WeightMatrixScorerRawDataIO.read(WeightMatrixScorerRawDataIO.java:67)
-	at sergey.lavrenyuk.nn.score.WeightMatrixScorerRawDataIO.read(WeightMatrixScorerRawDataIO.java:22)
-	at sergey.lavrenyuk.nn.score.WeightMatrixScorer.read(WeightMatrixScorer.java:88)
-	at sergey.lavrenyuk.nn.score.WeightMatrixScorer.get(WeightMatrixScorer.java:55)
-	at sergey.lavrenyuk.nn.score.WeightMatrixScorer.get(WeightMatrixScorer.java:14)
-	at sergey.lavrenyuk.Perceptron.run(Perceptron.java:68)
-	at net.sf.robocode.host.proxies.HostingRobotProxy.callUserCode(HostingRobotProxy.java:274)
-	at net.sf.robocode.host.proxies.HostingRobotProxy.run(HostingRobotProxy.java:221)
-	at net.sf.robocode.host.proxies.BasicRobotProxy.run(BasicRobotProxy.java:44)
-	at java.lang.Thread.run(Thread.java:748)
-
-	what is strange - after that the battle did not ended spamming with that message
-
-    I hope I fixed this, let it be here for now for information.
-
-8. Test what events on win / on death / round ended are triggered when different exceptional situations occurs
-testing onDeath / onWin / onRoundEnded
-exception in run() - non of the above events triggered
-exception in an event handler - non of the above events triggered
-too many turns skipped - the same... fuck
-
-Think about robust solution which tolerates no scoring attempts or multiple scoring attempts in a round
-
-I hope I fixed this, let it be here for now for information.
-
-9. Document list of Robocode bugfeatures:
+6. Document list of Robocode bugfeatures:
     (1) empty file created if not found
     (2) OnRoundEnded not triggered on exception, presumably both OnDeath and OnWin may trigger
 
-10. Very important for debug - implement file logging and log errors
+7. check partitioned files unit tests coverage
 
-11. check partitioned files unit tests coverage
+8. we can collect all exception messages and print them at the end of the battle
