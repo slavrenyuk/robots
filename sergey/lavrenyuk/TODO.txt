@@ -16,6 +16,4 @@
     (1) empty file created if not found
     (2) OnRoundEnded not triggered on exception, presumably both OnDeath and OnWin may trigger
 
-7. check partitioned files unit tests coverage
-
-8. we can collect all exception messages and print them at the end of the battle
+7. check PartitionedFiles and Exceptions unit tests coverage

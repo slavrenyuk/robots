@@ -29,6 +29,9 @@ import static sergey.lavrenyuk.geometry.GeometryUtils.toNormalizedMovement;
 // TODO document why everything is wrapped into try blocks
 public class Perceptron extends AdvancedRobot {
 
+    // up to 10 different exceptions will be saved and printed at the end of the battle
+    private static final Exceptions exceptions = new Exceptions(10);
+
     // we have a limitation on initializing static and final fields
     // base robot class is fully initialized and set up only in the run() method
     private static boolean staticInitialized = false;
@@ -145,6 +148,7 @@ public class Perceptron extends AdvancedRobot {
             instanceInitialized = true;
 
         } catch (Throwable t) {
+            exceptions.add(t.getMessage());
             log.error(t.getMessage());
         }
     }
@@ -174,6 +178,7 @@ public class Perceptron extends AdvancedRobot {
             float[] output = neuralNetwork.process(input);
             issueInstructions(enemyScanned, enemyBearingRadians, output);
         } catch (Throwable t) {
+            exceptions.add(t.getMessage());
             log.error(t.getMessage());
         }
     }
@@ -194,6 +199,7 @@ public class Perceptron extends AdvancedRobot {
             ));
             roundResultReported = true;
         } catch (Throwable t) {
+            exceptions.add(t.getMessage());
             log.error(t.getMessage());
         }
     }
@@ -208,7 +214,10 @@ public class Perceptron extends AdvancedRobot {
 
             roundResultConsumer.close();
         } catch (Throwable t) {
+            exceptions.add(t.getMessage());
             log.error(t.getMessage());
+        } finally {
+            log.error(exceptions.toString());
         }
     }
 
