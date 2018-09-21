@@ -1,4 +1,4 @@
-package sergey.lavrenyuk.nn.score;
+package sergey.lavrenyuk.nn.scoring;
 
 import sergey.lavrenyuk.io.Serializer;
 import sergey.lavrenyuk.io.Reader;

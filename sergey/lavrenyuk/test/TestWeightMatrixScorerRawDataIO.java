@@ -1,7 +1,7 @@
 package sergey.lavrenyuk.test;
 
 import sergey.lavrenyuk.io.IO;
-import sergey.lavrenyuk.nn.score.WeightMatrixScorerRawDataIO;
+import sergey.lavrenyuk.nn.scoring.WeightMatrixScorerRawDataIO;
 
 import java.io.IOException;
 import java.util.Arrays;

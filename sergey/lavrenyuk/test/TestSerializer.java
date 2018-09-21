@@ -1,8 +1,8 @@
 package sergey.lavrenyuk.test;
 
 import sergey.lavrenyuk.io.Serializer;
-import sergey.lavrenyuk.nn.score.Score;
-import sergey.lavrenyuk.nn.score.ScoredWeightMatrix;
+import sergey.lavrenyuk.nn.scoring.Score;
+import sergey.lavrenyuk.nn.scoring.ScoredWeightMatrix;
 import sergey.lavrenyuk.nn.WeightMatrix;
 
 import static sergey.lavrenyuk.test.base.TestUtils.assertCondition;

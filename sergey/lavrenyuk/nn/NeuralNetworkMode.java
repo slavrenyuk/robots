@@ -1,16 +1,16 @@
 package sergey.lavrenyuk.nn;
 
 import sergey.lavrenyuk.io.Config;
-import sergey.lavrenyuk.nn.score.RoundResultConsumer;
-import sergey.lavrenyuk.nn.score.Score;
-import sergey.lavrenyuk.nn.score.WeightMatrixScorer;
+import sergey.lavrenyuk.nn.scoring.RoundResultConsumer;
+import sergey.lavrenyuk.nn.scoring.Score;
+import sergey.lavrenyuk.nn.scoring.WeightMatrixScorer;
 
 import java.util.function.Supplier;
 
 public class NeuralNetworkMode {
 
     public static final String RANDOM = "random";
-    public static final String TRAINING = "training";
+    public static final String SCORING = "scoring";
     public static final String FIGHTING = "fighting";
 
     private final Supplier<WeightMatrix> weightMatrixSupplier;
@@ -23,11 +23,11 @@ public class NeuralNetworkMode {
             RandomWeightMatrixGenerator generator = new RandomWeightMatrixGenerator();
             this.weightMatrixSupplier = () -> generator.next(maxAbsWeightSupplier.get());
             this.roundResultConsumer = new NoOpResultConsumer();
-        } else if (TRAINING.equals(mode)) {
+        } else if (SCORING.equals(mode)) {
             WeightMatrixScorer weightMatrixScorer = WeightMatrixScorer.create(
                     Config.getNeuralNetworkWeightMatrixFilePattern(),
                     Config.getNeuralNetworkScoredWeightMatrixFilePattern(),
-                    Config.getScorerRoundsPerMatrix(),
+                    Config.getScoringRoundsPerMatrix(),
                     true);
             this.weightMatrixSupplier = weightMatrixScorer;
             this.roundResultConsumer = weightMatrixScorer;

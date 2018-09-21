@@ -33,40 +33,40 @@ public class Config {
         return getString("neuralNetwork.scoredWeightMatrixFilePattern");
     }
 
-    public static Integer getScorerRoundsPerMatrix() {
-        return getInteger("scorer.roundsPerMatrix");
+    public static Integer getScoringRoundsPerMatrix() {
+        return getInteger("scoring.roundsPerMatrix");
     }
 
-    public static Integer getTrainerMatricesPerOutputFile() {
-        return getInteger("trainer.matricesPerOutputFile");
+    public static Integer getTrainingMatricesPerOutputFile() {
+        return getInteger("training.matricesPerOutputFile");
     }
 
-    public static String getTrainerWinRatioFile() {
-        return getString("trainer.winRatioFile");
+    public static String getTrainingWinRatioFile() {
+        return getString("training.winRatioFile");
     }
 
-    public static String getTrainerSurvivorsFilePattern() {
-        return getString("trainer.survivorsFilePattern");
+    public static String getTrainingSurvivorsFilePattern() {
+        return getString("training.survivorsFilePattern");
     }
 
-    public static Integer getTrainerPopulation() {
-        return getInteger("trainer.population");
+    public static Integer getTrainingPopulation() {
+        return getInteger("training.population");
     }
 
-    public static Integer getTrainerSurvivors() {
-        return getInteger("trainer.survivors");
+    public static Integer getTrainingSurvivors() {
+        return getInteger("training.survivors");
     }
 
-    public static Integer getTrainerCrossingoverIndividuals() {
-        return getInteger("trainer.crossingoverIndividuals");
+    public static Integer getTrainingCrossingoverIndividuals() {
+        return getInteger("training.crossingoverIndividuals");
     }
 
-    public static Integer getTrainerMutatedCopies() {
-        return getInteger("trainer.mutatedCopies");
+    public static Integer getTrainingMutatedCopies() {
+        return getInteger("training.mutatedCopies");
     }
 
-    public static Integer getTrainerMutationPercentage() {
-        return getInteger("trainer.mutationPercentage");
+    public static Integer getTrainingMutationPercentage() {
+        return getInteger("training.mutationPercentage");
     }
 
     private static String getString(String key) {

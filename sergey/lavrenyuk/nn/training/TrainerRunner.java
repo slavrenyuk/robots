@@ -11,8 +11,8 @@ import sergey.lavrenyuk.io.Writer;
 import sergey.lavrenyuk.nn.IntGeneratorFromString;
 import sergey.lavrenyuk.nn.RandomWeightMatrixGenerator;
 import sergey.lavrenyuk.nn.WeightMatrix;
-import sergey.lavrenyuk.nn.score.Score;
-import sergey.lavrenyuk.nn.score.ScoredWeightMatrix;
+import sergey.lavrenyuk.nn.scoring.Score;
+import sergey.lavrenyuk.nn.scoring.ScoredWeightMatrix;
 import sergey.lavrenyuk.nn.training.io.FileReader;
 import sergey.lavrenyuk.nn.training.io.FileWriter;
 import sergey.lavrenyuk.nn.training.io.PartitionedFileReader;
@@ -29,7 +29,11 @@ import java.util.function.Supplier;
 import static sergey.lavrenyuk.io.PartitionedFiles.asStream;
 import static sergey.lavrenyuk.io.PartitionedFiles.nextFileName;
 
+import static sergey.lavrenyuk.nn.training.utils.TrainerUtils.sortMaxValues;
+
 public class TrainerRunner {
+
+    private static final int SCORED_WEIGHT_MATRICES_TO_SHOW = 10000;
 
     static { // initialize IO with our robot base directory
         String robotClassName = Perceptron.class.getSimpleName();
@@ -60,19 +64,31 @@ public class TrainerRunner {
 
     public void run() throws IOException {
 
-        readConfigProperties();
-
         Scanner scanner = new Scanner(System.in);
 
         while(true) { // quit when user prints Q
+
+            Config.refresh();
+            readConfigProperties();
+
+            // current generation -> survivors TBD
+            // survivors -> next generation TBD
+            // survivors -> file for fighting TBD (put to <robot>.data/enemies/<enemy_name>.dat
+            // current generation -> next generation
+
+            // current generation info (aka scored weight matrices)
+            // next generation info (aka population info)
+            // next generation verbose info (aka verbose population info)
+            // all generations info (aka win percentage)
+            // survivors info (aka survivors file)
 
             log.println("\nChoose one of the next options:");
             log.println("T  - training");
             log.println("P  - population info");
             log.println("Pv - verbose population info");
-            log.println("S  - survivors");
+            log.println("S  - survivors file");
+            log.println("SM - scored matrices file (top %d entries)", SCORED_WEIGHT_MATRICES_TO_SHOW);
             log.println("W  - win percentage");
-            log.println("R  - refresh configuration properties");
             log.println("Q  - quit");
             log.print("Input: ");
 
@@ -83,13 +99,7 @@ public class TrainerRunner {
                 return;
             }
 
-            if ("R".equalsIgnoreCase(input)) { // refresh configs
-
-                Config.refresh();
-                readConfigProperties();
-                log.println("Configuration properties refreshed");
-
-            } else if ("T".equalsIgnoreCase(input)) { // training
+            if ("T".equalsIgnoreCase(input)) { // training
 
                 if (PartitionedFiles.exists(CURRENT_GENERATION_FILE_PATTERN)) {
                     printPopulationInfoShort();
@@ -132,31 +142,11 @@ public class TrainerRunner {
                         ? PartitionedFiles.latestFileIndex(SURVIVORS_FILE_PATTERN)
                         : Integer.parseInt(input);
 
-                String survivorsFileName = PartitionedFiles.resolvePlaceholder(SURVIVORS_FILE_PATTERN, index);
-                File survivorsFile = IO.getFile(survivorsFileName);
-                if (!survivorsFile.exists()) {
-                    log.println("Survivors file '%s' not found", survivorsFile.getAbsolutePath());
-                    return;
-                }
-                if (!survivorsFile.isFile()) {
-                    log.println("'%s' is not a file", survivorsFile.getAbsolutePath());
-                    return;
-                }
-                if (survivorsFile.length() == 0) {
-                    log.println("Survivors file '%s' is empty", survivorsFile.getAbsolutePath());
-                    return;
-                }
-                if (survivorsFile.length() % ScoredWeightMatrix.SIZE_IN_BYTES != 0) {
-                    log.println("Survivors file doesn't contain an integer number of items");
-                }
+                printSurvivorsFile(PartitionedFiles.resolvePlaceholder(SURVIVORS_FILE_PATTERN, index));
 
-                log.println("Total number of survivors: %d", survivorsFile.length() / ScoredWeightMatrix.SIZE_IN_BYTES);
-                log.println(" index\t| win %%\t\t| average energy diff");
+            } else if ("SM".equalsIgnoreCase(input)) { // scored weight matrices
 
-                Reader<Score> reader = new FileReader<>(
-                        survivorsFile, ScoredWeightMatrix.SIZE_IN_BYTES, Serializer::deserializeScoreFromScoredWeightMatrix);
-
-                printScores(reader);
+                printCurrentGenerationFile();
 
             } else if ("W".equalsIgnoreCase(input)) { // win percentage
 
@@ -173,16 +163,16 @@ public class TrainerRunner {
     private void readConfigProperties() {
         CURRENT_GENERATION_FILE_PATTERN = Config.getNeuralNetworkScoredWeightMatrixFilePattern();
         NEXT_GENERATION_FILE_PATTERN = Config.getNeuralNetworkWeightMatrixFilePattern();
-        SURVIVORS_FILE_PATTERN = Config.getTrainerSurvivorsFilePattern();
-        WIN_RATIO_FILE = Config.getTrainerWinRatioFile();
-        MATRICES_PER_OUTPUT_FILE = Config.getTrainerMatricesPerOutputFile();
-        POPULATION = Config.getTrainerPopulation();
-        SURVIVORS = Config.getTrainerSurvivors();
-        CROSSINGOVER_INDIVIDUALS = Config.getTrainerCrossingoverIndividuals();
-        MUTATED_COPIES = Config.getTrainerMutatedCopies();
-        MUTATION_PERCENTAGE = Config.getTrainerMutationPercentage();
+        SURVIVORS_FILE_PATTERN = Config.getTrainingSurvivorsFilePattern();
+        WIN_RATIO_FILE = Config.getTrainingWinRatioFile();
+        MATRICES_PER_OUTPUT_FILE = Config.getTrainingMatricesPerOutputFile();
+        POPULATION = Config.getTrainingPopulation();
+        SURVIVORS = Config.getTrainingSurvivors();
+        CROSSINGOVER_INDIVIDUALS = Config.getTrainingCrossingoverIndividuals();
+        MUTATED_COPIES = Config.getTrainingMutatedCopies();
+        MUTATION_PERCENTAGE = Config.getTrainingMutationPercentage();
         MATRIX_MAX_ABS_WEIGHT_STRING = Config.getNeuralNetworkMatrixMaxAbsWeight();
-        ROUNDS_PER_MATRIX = Config.getScorerRoundsPerMatrix();
+        ROUNDS_PER_MATRIX = Config.getScoringRoundsPerMatrix();
 
         // verify config parameters
         if (POPULATION < 1) {
@@ -263,6 +253,48 @@ public class TrainerRunner {
                 .run();
     }
 
+    private void printSurvivorsFile(String survivorsFileName) throws IOException {
+        File survivorsFile = IO.getFile(survivorsFileName);
+        if (!survivorsFile.exists()) {
+            log.println("Survivors file '%s' not found", survivorsFile.getAbsolutePath());
+            return;
+        }
+        if (!survivorsFile.isFile()) {
+            log.println("'%s' is not a file", survivorsFile.getAbsolutePath());
+            return;
+        }
+        if (survivorsFile.length() == 0) {
+            log.println("Survivors file '%s' is empty", survivorsFile.getAbsolutePath());
+            return;
+        }
+        if (survivorsFile.length() % ScoredWeightMatrix.SIZE_IN_BYTES != 0) {
+            log.println("Survivors file doesn't contain an integer number of items");
+        }
+
+        log.println("Total number of survivors: %d", survivorsFile.length() / ScoredWeightMatrix.SIZE_IN_BYTES);
+        log.println(" index\t| win %%\t\t| average energy diff");
+
+        Reader<Score> reader = new FileReader<>(
+                survivorsFile, ScoredWeightMatrix.SIZE_IN_BYTES, Serializer::deserializeScoreFromScoredWeightMatrix);
+
+        printScores(reader);
+    }
+
+    private void printCurrentGenerationFile() throws IOException {
+        if (!PartitionedFiles.exists(CURRENT_GENERATION_FILE_PATTERN)) {
+            log.println("There was no input files with pattern '%s' found.", CURRENT_GENERATION_FILE_PATTERN);
+            return;
+        }
+
+        log.println(" index\t| win %%\t\t| average energy diff");
+
+        Reader<Score> reader = new PartitionedFileReader<>(CURRENT_GENERATION_FILE_PATTERN,
+                ScoredWeightMatrix.SIZE_IN_BYTES, Serializer::deserializeScoreFromScoredWeightMatrix);
+        reader = sortMaxValues(reader, SCORED_WEIGHT_MATRICES_TO_SHOW, Score::compareTo);
+
+        printScores(reader);
+    }
+
     private void printScores(Reader<Score> reader) throws IOException {
         Supplier<Integer> indexGenerator = new ScoredWeightMatrixIndexGenerator();
         int previousIndex = -1;
@@ -273,6 +305,7 @@ public class TrainerRunner {
             previousIndex = index;
             index = indexGenerator.get();
         }
+        reader.close();
     }
 
     private void printWinRatioFile() throws IOException {
@@ -303,6 +336,7 @@ public class TrainerRunner {
             log.println("Generation %d survivors win percentage = %.2f%%, population win percentage = %.2f%%",
                     generation, survivorsAverageWinRatio * 100, populationAverageWinRatio * 100);
         }
+        in.close();
     }
 
     private void printPopulationInfoVerbose() {
@@ -376,8 +410,7 @@ public class TrainerRunner {
      *  - from 15th to 100th matrix increment by 5
      *  - from 125th to 500th matrix increment by 25
      *  - from 600th to 5000th matrix increment by 100
-     *  - from 6000th to 100000 matrix increment by 1000
-     *  - from 110000 till the end increment by 10000
+     *  - from 5500th till end increment by 500
      */
     private static class ScoredWeightMatrixIndexGenerator implements Supplier<Integer> {
 
@@ -391,8 +424,7 @@ public class TrainerRunner {
         }
 
         private static int getIncrement(int index) {
-            return (index >= 99999) ? 10000 :
-                   (index >= 4999) ? 1000 :
+            return (index >= 4999) ? 500 :
                    (index >= 499) ? 100 :
                    (index >= 99) ? 25 :
                    (index >= 9) ? 5 : 1;

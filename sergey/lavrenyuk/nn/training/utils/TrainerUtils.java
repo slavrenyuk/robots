@@ -1,15 +1,29 @@
 package sergey.lavrenyuk.nn.training.utils;
 
+import sergey.lavrenyuk.io.Reader;
 import sergey.lavrenyuk.nn.WeightMatrix;
+import sergey.lavrenyuk.nn.training.io.ReaderFromIterator;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 
 public class TrainerUtils {
 
     private TrainerUtils() {}
+
+    public static <T> Reader<T> sortMaxValues(Reader<T> reader, int limit, Comparator<T> comparator) throws IOException {
+        MaxValuesStorage<T> storage = new MaxValuesStorage<>(limit, comparator);
+        T data;
+        while ((data = reader.read()) != null) {
+            storage.put(data);
+        }
+        reader.close();
+        return new ReaderFromIterator<>(storage.asList().iterator());
+    }
 
     @SafeVarargs
     public static <T> Iterable<T> concatLazily(Iterable<T>... iterables) {

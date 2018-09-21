@@ -8,8 +8,9 @@ print_usage() {
     printf "Commands:\n"
     printf "    compile   compiles robot and other related Java source files and places compiled files to the same folder as corresponding sources\n"
     printf "    clean     deletes all compiled files\n"
-    printf "    train     launches robot's neural network weight matrices training\n"
     printf "    test      runs all tests under sergey/lavrenyuk/test directory\n"
+    printf "    training  launches robot's neural network weight matrices training\n"
+    printf "    scoring   TODO\n"
 }
 
 clean() {
@@ -38,14 +39,23 @@ then
     elif [ $1 == "clean" ]
     then
         clean
-    elif [ $1 == "train" ]
-    then
-        compile "sergey/lavrenyuk/nn/training/TrainerRunner.java"
-        execute "sergey.lavrenyuk.nn.training.TrainerRunner"
     elif [ $1 == "test" ]
     then
         compile "sergey/lavrenyuk/test/*.java"
         execute "sergey.lavrenyuk.test.Runner"
+    elif [ $1 == "training" ]
+    then
+        compile "sergey/lavrenyuk/nn/training/TrainerRunner.java"
+        execute "sergey.lavrenyuk.nn.training.TrainerRunner"
+    elif [ $1 == "scoring" ]
+    then
+        printf "\nVerify 'config.properties' file:\n"
+        printf "    neuralNetwork.mode=scoring\n"
+        printf "    scoring.roundsPerMatrix value is correct\n"
+
+        read -p "Rounds = " rounds
+        printf "Confirm and continue? Y/N\n"
+        read input
     else
         print_usage
     fi

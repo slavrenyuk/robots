@@ -1,7 +1,7 @@
 package sergey.lavrenyuk.io;
 
-import sergey.lavrenyuk.nn.score.Score;
-import sergey.lavrenyuk.nn.score.ScoredWeightMatrix;
+import sergey.lavrenyuk.nn.scoring.Score;
+import sergey.lavrenyuk.nn.scoring.ScoredWeightMatrix;
 import sergey.lavrenyuk.nn.WeightMatrix;
 
 import java.nio.ByteBuffer;

@@ -3,8 +3,8 @@ package sergey.lavrenyuk.test;
 import sergey.lavrenyuk.io.Reader;
 import sergey.lavrenyuk.io.Writer;
 import sergey.lavrenyuk.nn.WeightMatrix;
-import sergey.lavrenyuk.nn.score.Score;
-import sergey.lavrenyuk.nn.score.ScoredWeightMatrix;
+import sergey.lavrenyuk.nn.scoring.Score;
+import sergey.lavrenyuk.nn.scoring.ScoredWeightMatrix;
 import sergey.lavrenyuk.nn.training.Trainer;
 import sergey.lavrenyuk.nn.training.utils.AverageEvaluator;
 

@@ -2,16 +2,13 @@
 1. Update training:
     - add ability to create new population based on survivors file
     - add ability to transform scored weight matrices to survivors file and do not generate next population
-    - add ability to just print scored weight matrices score, so user can choose the number of survivors depending on their performance
-        (similarly as it is done for survivors file)
     - add ability to get some amount of survivors from file and save them as just weight matrices to another file (i.e. for fighting mode)
         (consider to call file as enemy name)
+    - rework training to provide more convenient experience (auto refresh config, more friendly names, etc.)
 
-2. rework TrainerRunner to provide more convenient experience (perhaps split training into 2 parts)
+2. setup scoring phase in a headless (no UI) mode
 
-3. setup scoring phase in a headless (no UI) mode
-
-4. implement fighting mode (? use different name ?)
+3. implement fighting mode (? use different name ?)
 
 
 TECH DEBT

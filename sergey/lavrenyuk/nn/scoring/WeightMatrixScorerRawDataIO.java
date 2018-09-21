@@ -1,4 +1,4 @@
-package sergey.lavrenyuk.nn.score;
+package sergey.lavrenyuk.nn.scoring;
 
 import robocode.RobocodeFileOutputStream;
 import sergey.lavrenyuk.io.PartitionedFiles;
