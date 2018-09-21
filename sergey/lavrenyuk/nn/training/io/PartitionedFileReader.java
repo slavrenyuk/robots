@@ -32,20 +32,26 @@ public class PartitionedFileReader<T> implements Reader<T> {
 
     @Override
     public T read() throws IOException {
-        int bytesRead = in.read(dataBuffer);
-        if (bytesRead == -1) {
-            if (fileIterator.hasNext()) {
-                in = nextInputFileStream();
-                return read();
-            }
-            return null;
-        }
+        return (readBytesIntoBuffer() != -1)
+                ? deserialization.apply(dataBuffer)
+                : null;
+    }
 
-        if (bytesRead != dataBuffer.length) {
+    @Override
+    public boolean skip() throws IOException {
+        return (readBytesIntoBuffer() != -1);
+    }
+
+    private int readBytesIntoBuffer() throws IOException {
+        int bytesRead = in.read(dataBuffer);
+        if ((bytesRead != -1) && (bytesRead != dataBuffer.length)) {
             throw new IllegalArgumentException("File doesn't contain an integer number of input items");
         }
-
-        return deserialization.apply(dataBuffer);
+        if ((bytesRead == -1) && fileIterator.hasNext()) {
+            in = nextInputFileStream();
+            return readBytesIntoBuffer();
+        }
+        return bytesRead;
     }
 
     @Override

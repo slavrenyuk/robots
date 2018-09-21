@@ -207,17 +207,22 @@ public class Perceptron extends AdvancedRobot {
     @Override
     public synchronized void onBattleEnded(BattleEndedEvent event) {
         try {
-            String failedRoundsMessage = (roundsFailed == 0)
-                    ? "No rounds failed with a nonrecoverable exception."
-                    : String.format("Totally %d rounds failed with a nonrecoverable exception.", roundsFailed);
-            log.info(failedRoundsMessage);
-
             roundResultConsumer.close();
         } catch (Throwable t) {
             exceptions.add(t.getMessage());
             log.error(t.getMessage());
         } finally {
-            log.error(exceptions.toString());
+            if (roundsFailed == 0) {
+                log.info("No rounds failed with a nonrecoverable exception.");
+            } else {
+                log.error(String.format("Totally %d rounds failed with a nonrecoverable exception.", roundsFailed));
+            }
+
+            if (exceptions.isEmpty()) {
+                log.info("No exceptions occurred during the battle.");
+            } else {
+                log.error(exceptions.toString());
+            }
         }
     }
 

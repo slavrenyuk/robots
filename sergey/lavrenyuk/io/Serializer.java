@@ -56,6 +56,12 @@ public class Serializer {
         return deserializeWeightMatrix(ByteBuffer.wrap(bytes));
     }
 
+    public static Score deserializeScoreFromScoredWeightMatrix(byte[] bytes) {
+        verifyBytesLength(bytes.length, Score.SIZE_IN_BYTES + WeightMatrix.SIZE_IN_BYTES);
+        ByteBuffer byteBuffer = ByteBuffer.wrap(bytes);
+        return new Score(byteBuffer.getFloat(), byteBuffer.getFloat());
+    }
+
     private static void verifyBytesLength(int actualSize, int expectedSize) {
         if (actualSize != expectedSize) {
             throw new IllegalArgumentException(String.format("Incorrect number of bytes. Got %d, expected %d.",

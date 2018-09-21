@@ -15,11 +15,16 @@ public class PartitionedFiles {
 
     private static final String PLACEHOLDER = "{}";
 
+    public static String resolvePlaceholder(String fileNamePattern, int index) {
+        return fileNamePattern.replace(PLACEHOLDER, Integer.toString(index));
+    }
+
     public static boolean exists(String filePattern) {
         return asStream(filePattern).findAny().isPresent();
     }
 
-    public static String nextFileName(String filePattern) {
+    // returns -1 if file not found
+    public static int latestFileIndex(String filePattern) {
 
         Pattern pattern = fileNamePattern(filePattern);
         int maxFileIndex = -1;
@@ -33,7 +38,18 @@ public class PartitionedFiles {
                 }
             }
         }
-        return resolvePlaceholder(filePattern, maxFileIndex + 1);
+        return maxFileIndex;
+    }
+
+    public static String latestFileName(String filePattern) {
+        int maxFileIndex = latestFileIndex(filePattern);
+        return (maxFileIndex > -1)
+                ? resolvePlaceholder(filePattern, maxFileIndex)
+                : null;
+    }
+
+    public static String nextFileName(String filePattern) {
+        return resolvePlaceholder(filePattern, latestFileIndex(filePattern) + 1);
     }
 
     public static Iterable<Integer> getFileIndexes(String filePattern) {
@@ -112,10 +128,6 @@ public class PartitionedFiles {
         public File next() {
             return IO.getFile(resolvePlaceholder(filePattern, fileIndexIterator.next()));
         }
-    }
-
-    private static String resolvePlaceholder(String fileNamePattern, int index) {
-        return fileNamePattern.replace(PLACEHOLDER, Integer.toString(index));
     }
 
     private static Pattern fileNamePattern(String filePathPattern) {

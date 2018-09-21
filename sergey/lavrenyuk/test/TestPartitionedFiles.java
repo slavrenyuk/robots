@@ -12,6 +12,7 @@ import static sergey.lavrenyuk.test.base.TestUtils.assertCondition;
 import static sergey.lavrenyuk.test.base.TestUtils.assertExceptionThrown;
 import static sergey.lavrenyuk.test.base.TestUtils.createTestFile;
 import static sergey.lavrenyuk.test.base.TestUtils.createTestFiles;
+import static sergey.lavrenyuk.test.base.TestUtils.deepDelete;
 
 public class TestPartitionedFiles {
 
@@ -90,10 +91,10 @@ public class TestPartitionedFiles {
     }
 
     public void testGetExistingFileIndexesInSubFolder() throws IOException {
-        File folder = IO.getFile("data");
+        File folder = IO.getFile("test_data");
         folder.mkdir();
-        createTestFiles("data/abc0.dat", "data/abc1.dat", "data/abc3.dat");
-        Iterator<Integer> iterator = PartitionedFiles.getFileIndexes("data/abc{}.dat").iterator();
+        createTestFiles("test_data/abc0.dat", "test_data/abc1.dat", "test_data/abc3.dat");
+        Iterator<Integer> iterator = PartitionedFiles.getFileIndexes("test_data/abc{}.dat").iterator();
         assertCondition(iterator.hasNext());
         assertCondition(iterator.next() == 0);
         assertCondition(iterator.hasNext());
@@ -105,10 +106,10 @@ public class TestPartitionedFiles {
     }
 
     public void testGetExistingFileIndexesInParentFolder() throws IOException {
-        File folder = IO.getFile("../data");
+        File folder = IO.getFile("../test_data");
         folder.mkdir();
-        createTestFiles("../data/abc1.dat", "../data/abc3.dat", "../data/abc5.dat");
-        Iterator<Integer> iterator = PartitionedFiles.getFileIndexes("../data/abc{}.dat").iterator();
+        createTestFiles("../test_data/abc1.dat", "../test_data/abc3.dat", "../test_data/abc5.dat");
+        Iterator<Integer> iterator = PartitionedFiles.getFileIndexes("../test_data/abc{}.dat").iterator();
         assertCondition(iterator.hasNext());
         assertCondition(iterator.next() == 1);
         assertCondition(iterator.hasNext());
@@ -130,18 +131,17 @@ public class TestPartitionedFiles {
     }
 
     public void testFindNextAvailableFileInSubFolder() throws IOException {
-        File folder = IO.getFile("data");
+        File folder = IO.getFile("test_data");
         folder.mkdir();
-        createTestFiles("data/abc0.dat", "data/abc1.dat", "data/abc3.dat");
-        assertCondition(("data/abc4.dat".equals(PartitionedFiles.nextFileName("data/abc{}.dat"))));
-        folder.delete();
+        createTestFiles("test_data/abc0.dat", "test_data/abc1.dat", "test_data/abc3.dat");
+        assertCondition(("test_data/abc4.dat".equals(PartitionedFiles.nextFileName("test_data/abc{}.dat"))));
     }
 
     public void testFindNextAvailableFileInParentFolder() throws IOException {
-        File folder = IO.getFile("../data");
+        File folder = IO.getFile("../test_data");
         folder.mkdir();
-        createTestFiles("../data/abc1.dat", "../data/abc3.dat", "../data/abc5.dat");
-        assertCondition(("../data/abc6.dat".equals(PartitionedFiles.nextFileName("../data/abc{}.dat"))));
-        folder.delete();
+        createTestFiles("../test_data/abc1.dat", "../test_data/abc3.dat", "../test_data/abc5.dat");
+        assertCondition(("../test_data/abc6.dat".equals(PartitionedFiles.nextFileName("../test_data/abc{}.dat"))));
+        deepDelete(folder); // need to delete if manually since it is outside of standard test folder
     }
 }

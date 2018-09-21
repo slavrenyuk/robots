@@ -11,7 +11,9 @@ import sergey.lavrenyuk.io.Writer;
 import sergey.lavrenyuk.nn.IntGeneratorFromString;
 import sergey.lavrenyuk.nn.RandomWeightMatrixGenerator;
 import sergey.lavrenyuk.nn.WeightMatrix;
+import sergey.lavrenyuk.nn.score.Score;
 import sergey.lavrenyuk.nn.score.ScoredWeightMatrix;
+import sergey.lavrenyuk.nn.training.io.FileReader;
 import sergey.lavrenyuk.nn.training.io.FileWriter;
 import sergey.lavrenyuk.nn.training.io.PartitionedFileReader;
 import sergey.lavrenyuk.nn.training.io.PartitionedFileWriter;
@@ -68,6 +70,7 @@ public class TrainerRunner {
             log.println("T  - training");
             log.println("P  - population info");
             log.println("Pv - verbose population info");
+            log.println("S  - survivors");
             log.println("W  - win percentage");
             log.println("R  - refresh configuration properties");
             log.println("Q  - quit");
@@ -114,6 +117,46 @@ public class TrainerRunner {
             } else if ("Pv".equalsIgnoreCase(input)) { // verbose population info
 
                 printPopulationInfoVerbose();
+
+            } else if ("S".equalsIgnoreCase(input)) { // survivors
+
+                if (!PartitionedFiles.exists(SURVIVORS_FILE_PATTERN)) {
+                    log.println("Survivors file with pattern '%s' not found", SURVIVORS_FILE_PATTERN);
+                    return;
+                }
+
+                log.print("\nGeneration number (leave blank for the latest generation): ");
+                input = scanner.nextLine();
+
+                int index = input.trim().isEmpty()
+                        ? PartitionedFiles.latestFileIndex(SURVIVORS_FILE_PATTERN)
+                        : Integer.parseInt(input);
+
+                String survivorsFileName = PartitionedFiles.resolvePlaceholder(SURVIVORS_FILE_PATTERN, index);
+                File survivorsFile = IO.getFile(survivorsFileName);
+                if (!survivorsFile.exists()) {
+                    log.println("Survivors file '%s' not found", survivorsFile.getAbsolutePath());
+                    return;
+                }
+                if (!survivorsFile.isFile()) {
+                    log.println("'%s' is not a file", survivorsFile.getAbsolutePath());
+                    return;
+                }
+                if (survivorsFile.length() == 0) {
+                    log.println("Survivors file '%s' is empty", survivorsFile.getAbsolutePath());
+                    return;
+                }
+                if (survivorsFile.length() % ScoredWeightMatrix.SIZE_IN_BYTES != 0) {
+                    log.println("Survivors file doesn't contain an integer number of items");
+                }
+
+                log.println("Total number of survivors: %d", survivorsFile.length() / ScoredWeightMatrix.SIZE_IN_BYTES);
+                log.println(" index\t| win %%\t\t| average energy diff");
+
+                Reader<Score> reader = new FileReader<>(
+                        survivorsFile, ScoredWeightMatrix.SIZE_IN_BYTES, Serializer::deserializeScoreFromScoredWeightMatrix);
+
+                printScores(reader);
 
             } else if ("W".equalsIgnoreCase(input)) { // win percentage
 
@@ -193,11 +236,11 @@ public class TrainerRunner {
                 Serializer::serializeWeightMatrix);
 
         Writer<ScoredWeightMatrix> survivorsWriter = new FileWriter<>(
-                nextFileName(SURVIVORS_FILE_PATTERN),
+                IO.getFile(nextFileName(SURVIVORS_FILE_PATTERN)),
                 Serializer::serializeScoredWeightMatrix);
 
         Writer<Float> winRatioWriter = new FileWriter<>(
-                WIN_RATIO_FILE,
+                IO.getFile(WIN_RATIO_FILE),
                 floatValue -> ByteBuffer.wrap(new byte[Float.BYTES]).putFloat(floatValue).array(),
                 true);
 
@@ -220,6 +263,18 @@ public class TrainerRunner {
                 .run();
     }
 
+    private void printScores(Reader<Score> reader) throws IOException {
+        Supplier<Integer> indexGenerator = new ScoredWeightMatrixIndexGenerator();
+        int previousIndex = -1;
+        int index = indexGenerator.get();
+        while (reader.skip(index - previousIndex - 1)) {
+            Score score = reader.read();
+            log.println(" %d\t| %.2f%%\t| %.2f", index, score.getWinRate() * 100, score.getAverageEnergyDiff());
+            previousIndex = index;
+            index = indexGenerator.get();
+        }
+    }
+
     private void printWinRatioFile() throws IOException {
 
         File winRatioFile = IO.getFile(WIN_RATIO_FILE);
@@ -229,7 +284,7 @@ public class TrainerRunner {
             return;
         }
         if (!winRatioFile.isFile()) {
-            log.println(" %s is not a file", winRatioFile.getAbsolutePath());
+            log.println("'%s' is not a file", winRatioFile.getAbsolutePath());
             return;
         }
         if (winRatioFile.length() % (2 * Float.BYTES) != 0) {
@@ -312,5 +367,35 @@ public class TrainerRunner {
         }
 
         log.println("%d rounds required", POPULATION * ROUNDS_PER_MATRIX);
+    }
+
+    /**
+     * Class for generating scored weight matrix indexes to be shown. This class is required since there will be a lot of
+     * scored weight matrices and we don't want to show them all. The rule is next:
+     *  - from 1st to 10th matrix increment by 1
+     *  - from 15th to 100th matrix increment by 5
+     *  - from 125th to 500th matrix increment by 25
+     *  - from 600th to 5000th matrix increment by 100
+     *  - from 6000th to 100000 matrix increment by 1000
+     *  - from 110000 till the end increment by 10000
+     */
+    private static class ScoredWeightMatrixIndexGenerator implements Supplier<Integer> {
+
+        private int index = 0;
+
+        @Override
+        public Integer get() {
+            int result = index;
+            index += getIncrement(index);
+            return result;
+        }
+
+        private static int getIncrement(int index) {
+            return (index >= 99999) ? 10000 :
+                   (index >= 4999) ? 1000 :
+                   (index >= 499) ? 100 :
+                   (index >= 99) ? 25 :
+                   (index >= 9) ? 5 : 1;
+        }
     }
 }

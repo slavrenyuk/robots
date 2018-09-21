@@ -13,7 +13,7 @@ print_usage() {
 }
 
 clean() {
-    find $ROBOCODE_HOME/robots/sergey/lavrenyuk/ -name *.class -type f -delete
+    find $ROBOCODE_HOME/robots/sergey/lavrenyuk/ -name '*.class' -type f -delete
     rm -rf $ROBOCODE_HOME/robots/out/
 }
 

@@ -5,26 +5,32 @@ import java.util.List;
 
 public class Exceptions {
 
-    private final int exceptionsThreshold;
-    private final List<ExceptionOccurrences> exceptions  = new ArrayList<>();
+    private final int exceptionsLimit;
+    private final List<ExceptionInfo> exceptions  = new ArrayList<>();
 
-    public Exceptions(int exceptionsThreshold) {
-        this.exceptionsThreshold = exceptionsThreshold;
+    public Exceptions(int exceptionsLimit) {
+        this.exceptionsLimit = exceptionsLimit;
     }
 
     public void add(String exceptionMessage) {
         // find if we already faced such exception and increment its occurrences
-        for (ExceptionOccurrences exceptionOccurrences : exceptions) {
-            if (exceptionOccurrences.exceptionMessage.equals(exceptionMessage)) {
-                exceptionOccurrences.occurrences++;
+        for (ExceptionInfo exception : exceptions) {
+            if (exception.message.equals(exceptionMessage)) {
+                if (exception.occurrences < Long.MAX_VALUE) {
+                    exception.occurrences++;
+                }
                 return;
             }
         }
 
         // this is a new exception, save it if we didn't reach a limit yet
-        if (exceptions.size() < exceptionsThreshold) {
-            exceptions.add(new ExceptionOccurrences(exceptionMessage));
+        if (exceptions.size() < exceptionsLimit) {
+            exceptions.add(new ExceptionInfo(exceptionMessage));
         }
+    }
+
+    public boolean isEmpty() {
+        return exceptions.isEmpty();
     }
 
     @Override
@@ -37,18 +43,18 @@ public class Exceptions {
         return stringBuilder.toString();
     }
 
-    private static class ExceptionOccurrences {
+    private static class ExceptionInfo {
 
-        int occurrences = 0;
-        final String exceptionMessage;
+        long occurrences = 0;
+        final String message;
 
-        ExceptionOccurrences(String exceptionMessage) {
-            this.exceptionMessage = exceptionMessage;
+        ExceptionInfo(String exceptionMessage) {
+            this.message = exceptionMessage;
         }
 
         @Override
         public String toString() {
-            return String.format("occurrences = %d, exception message = %s", occurrences, exceptionMessage);
+            return String.format("occurrences = %d, exception message = %s", occurrences, message);
         }
     }
 }

@@ -1,19 +1,27 @@
+
+1. Update training:
+    - add ability to create new population based on survivors file
+    - add ability to transform scored weight matrices to survivors file and do not generate next population
+    - add ability to just print scored weight matrices score, so user can choose the number of survivors depending on their performance
+        (similarly as it is done for survivors file)
+    - add ability to get some amount of survivors from file and save them as just weight matrices to another file (i.e. for fighting mode)
+        (consider to call file as enemy name)
+
+2. rework TrainerRunner to provide more convenient experience (perhaps split training into 2 parts)
+
+3. setup scoring phase in a headless (no UI) mode
+
+4. implement fighting mode (? use different name ?)
+
+
+TECH DEBT
+
 1. add javadocs
 
 2. add project description to README file
 
-3. implement code to examine survivals file (e.g. show win ratio) and decide what survivors should go to a final file to be
-        used in fighting mode
+3. check PartitionedFiles and Exceptions unit tests coverage
 
-4. implement fighting mode (? use different name ?)
-
-5. survivors file is used as a backup file, but there is no option to recreate a population basing on survivors file,
-        but only on scored weight matrices
-        UPD there is an indirect way to do that - copy survivors and use  as scored weight matrices file,
-            but that won't work if number of survivors in the file is less than 'survivors' config property
-
-6. Document list of Robocode bugfeatures:
+4. Document list of Robocode bugfeatures:
     (1) empty file created if not found
     (2) OnRoundEnded not triggered on exception, presumably both OnDeath and OnWin may trigger
-
-7. check PartitionedFiles and Exceptions unit tests coverage

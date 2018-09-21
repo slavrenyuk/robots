@@ -9,6 +9,8 @@ import java.util.Arrays;
 import java.util.Optional;
 import java.util.regex.Pattern;
 
+import static sergey.lavrenyuk.test.base.TestUtils.deepDelete;
+
 public class Runner {
 
     public static void main(String[] args) {
@@ -74,8 +76,7 @@ public class Runner {
                     System.out.println("Failed:");
                     Optional.ofNullable(ex.getCause()).orElse(ex).printStackTrace(System.out);
                 } finally {
-                    Arrays.stream(classTestFolder.listFiles())
-                            .forEach(File::delete);
+                    deepDelete(classTestFolder, false);
                 }
             }
         }

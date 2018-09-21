@@ -54,6 +54,23 @@ public class TestUtils {
         }
     }
 
+    public static void deepDelete(File folder) {
+        deepDelete(folder, true);
+    }
+
+    public static void deepDelete(File folder, boolean deleteSelf) {
+        for (File children : folder.listFiles()) {
+            if (children.isFile()) {
+                children.delete();
+            } else if (children.isDirectory()) {
+                deepDelete(children, true);
+            }
+        }
+        if (deleteSelf) {
+            folder.delete();
+        }
+    }
+
     public static void assertCondition(boolean condition) {
         assertCondition(condition, "condition not met");
     }
