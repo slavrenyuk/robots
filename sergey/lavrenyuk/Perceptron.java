@@ -268,10 +268,10 @@ public class Perceptron extends AdvancedRobot {
 
         // 3rd element is treated as a bullet power, negative values means do not fire
         double bulletPower = neuralNetworkOutput[2] * Rules.MAX_BULLET_POWER;
-        // 4th element is treated as the gun correction relative to direct targeting on enemy
+        // 4th element is treated as the gun correction relative to direct targeting on the enemy
         // this makes sense since it takes some time for a bullet to reach the enemy
-        // correction range is [-45, 45] degrees
-        double gunCorrectionRadians = neuralNetworkOutput[3] * Math.PI / 4;
+        // correction range is taken from a constant Rules.GUN_TURN_RATE_RADIANS and is [-20, 20] degrees
+        double gunCorrectionRadians = neuralNetworkOutput[3] *  Rules.GUN_TURN_RATE_RADIANS;
 
         issueRadarInstructions(enemyScanned, enemyBearingRadians);
         issueGunInstructions(enemyScanned, bulletPower, enemyBearingRadians, gunCorrectionRadians);

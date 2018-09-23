@@ -1,7 +1,10 @@
 package sergey.lavrenyuk.nn.training.utils;
 
 import sergey.lavrenyuk.io.Reader;
+import sergey.lavrenyuk.io.Writer;
+import sergey.lavrenyuk.nn.RandomWeightMatrixGenerator;
 import sergey.lavrenyuk.nn.WeightMatrix;
+import sergey.lavrenyuk.nn.scoring.ScoredWeightMatrix;
 import sergey.lavrenyuk.nn.training.io.ReaderFromIterator;
 
 import java.io.IOException;
@@ -10,6 +13,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
+import java.util.function.Supplier;
 
 public class TrainerUtils {
 
@@ -120,5 +124,74 @@ public class TrainerUtils {
             }
         }
         return result;
+    }
+
+    public static void processCurrentGenerationToSurvivors(Reader<ScoredWeightMatrix> currentGenerationReader,
+                                                           Writer<ScoredWeightMatrix> survivorsWriter,
+                                                           Writer<Float> winRatioWriter,
+                                                           Runnable currentGenerationRemover,
+                                                           int survivors) throws IOException {
+        MaxValuesStorage<ScoredWeightMatrix> storage = new MaxValuesStorage<>(
+                survivors, Comparator.comparing(ScoredWeightMatrix::getScore));
+        AverageEvaluator averageEvaluator = new AverageEvaluator();
+        ScoredWeightMatrix scoredWeightMatrix;
+        while ((scoredWeightMatrix = currentGenerationReader.read()) != null) {
+            storage.put(scoredWeightMatrix);
+            averageEvaluator.put(scoredWeightMatrix.getScore().getWinRate());
+        }
+        List<ScoredWeightMatrix> survivorsScoredWeightMatrices = storage.asList();
+        float populationAverageWinRatio = averageEvaluator.getAverage();
+
+        averageEvaluator = new AverageEvaluator();
+        for (ScoredWeightMatrix survivorScoredWeightMatrix : survivorsScoredWeightMatrices) {
+            survivorsWriter.write(survivorScoredWeightMatrix);
+            averageEvaluator.put(survivorScoredWeightMatrix.getScore().getWinRate());
+        }
+        float survivorsAverageWinRatio = averageEvaluator.getAverage();
+
+        winRatioWriter.write(populationAverageWinRatio);
+        winRatioWriter.write(survivorsAverageWinRatio);
+
+        survivorsWriter.close();
+        winRatioWriter.close();
+
+        currentGenerationReader.close();
+        currentGenerationRemover.run();
+    }
+
+    public static void processSurvivorsToNextGeneration(Reader<WeightMatrix> survivorsReader,
+                                                        Writer<WeightMatrix> nextGenerationWriter,
+                                                        Supplier<Integer> matrixMaxAbsWeightGenerator,
+                                                        int crossingoverIndividuals,
+                                                        int mutatedCopies,
+                                                        int mutationPercentage,
+                                                        int population) throws IOException {
+        List<WeightMatrix> survivorsWeightMatrices = new ArrayList<>();
+        WeightMatrix survivorWeightMatrix;
+        while((survivorWeightMatrix = survivorsReader.read()) != null) {
+            survivorsWeightMatrices.add(survivorWeightMatrix);
+        }
+        survivorsReader.close();
+
+        List<WeightMatrix> childrenWeightMatrices = crossingover(survivorsWeightMatrices, crossingoverIndividuals);
+        Iterable<WeightMatrix> survivorsAndTheirChildren = concatLazily(survivorsWeightMatrices, childrenWeightMatrices);
+        Iterable<WeightMatrix> mutatedSurvivorsAndTheirChildren =
+                mutateLazily(survivorsAndTheirChildren, mutatedCopies, mutationPercentage);
+
+        int written = 0;
+        for (WeightMatrix weightMatrix : concatLazily(survivorsAndTheirChildren, mutatedSurvivorsAndTheirChildren)) {
+            written++;
+            nextGenerationWriter.write(weightMatrix);
+            if (written == population) {
+                break;
+            }
+        }
+
+        RandomWeightMatrixGenerator randomWeightMatrixGenerator = new RandomWeightMatrixGenerator();
+        for (; written < population; written++) {
+            nextGenerationWriter.write(randomWeightMatrixGenerator.next(matrixMaxAbsWeightGenerator.get()));
+        }
+
+        nextGenerationWriter.close();
     }
 }

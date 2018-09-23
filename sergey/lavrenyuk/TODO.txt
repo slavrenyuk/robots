@@ -1,14 +1,9 @@
 
 1. Update training:
-    - add ability to create new population based on survivors file
-    - add ability to transform scored weight matrices to survivors file and do not generate next population
     - add ability to get some amount of survivors from file and save them as just weight matrices to another file (i.e. for fighting mode)
         (consider to call file as enemy name)
-    - rework training to provide more convenient experience (auto refresh config, more friendly names, etc.)
 
-2. setup scoring phase in a headless (no UI) mode
-
-3. implement fighting mode (? use different name ?)
+2. implement fighting mode (? use different name ?)
 
 
 TECH DEBT
@@ -17,8 +12,11 @@ TECH DEBT
 
 2. add project description to README file
 
-3. check PartitionedFiles and Exceptions unit tests coverage
+3. check Trainer, Serializer, PartitionedFiles and Exceptions unit tests coverage
 
 4. Document list of Robocode bugfeatures:
     (1) empty file created if not found
-    (2) OnRoundEnded not triggered on exception, presumably both OnDeath and OnWin may trigger
+    (2) OnBattleEnded, OnRoundEnded, OnDeath, OnWin are  not triggered on exception
+    (3) OnRoundEnded and OnBattleEnded are triggered before OnDeath and OnWin
+
+5. slightly reorganize Perceptron's fields order

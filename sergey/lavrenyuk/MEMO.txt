@@ -18,7 +18,7 @@
 
 3)  First enemy is VelociRobot.
 
-4)  Initial testing of optimal matrixMaxAbsWeight values.
+4)  Testing of optimal matrixMaxAbsWeight values.
     Battle results with 10000 rounds, random matrices and different matrixMaxAbsWeight values.
 
     matrixMaxAbsWeight,     winPercentage

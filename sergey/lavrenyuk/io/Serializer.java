@@ -14,7 +14,7 @@ public class Serializer {
         Score score = scoredWeightMatrix.getScore();
         WeightMatrix weightMatrix = scoredWeightMatrix.getWeightMatrix();
 
-        ByteBuffer byteBuffer = ByteBuffer.wrap(new byte[Score.SIZE_IN_BYTES + WeightMatrix.SIZE_IN_BYTES]);
+        ByteBuffer byteBuffer = ByteBuffer.wrap(new byte[ScoredWeightMatrix.SIZE_IN_BYTES]);
 
         byteBuffer.putFloat(score.getWinRate());
         byteBuffer.putFloat(score.getAverageEnergyDiff());
@@ -44,7 +44,7 @@ public class Serializer {
     }
 
     public static ScoredWeightMatrix deserializeScoredWeightMatrix(byte[] bytes) {
-        verifyBytesLength(bytes.length, Score.SIZE_IN_BYTES + WeightMatrix.SIZE_IN_BYTES);
+        verifyBytesLength(bytes.length, ScoredWeightMatrix.SIZE_IN_BYTES);
         ByteBuffer byteBuffer = ByteBuffer.wrap(bytes);
         Score score = new Score(byteBuffer.getFloat(), byteBuffer.getFloat());
         WeightMatrix weightMatrix = deserializeWeightMatrix(byteBuffer);
@@ -57,9 +57,14 @@ public class Serializer {
     }
 
     public static Score deserializeScoreFromScoredWeightMatrix(byte[] bytes) {
-        verifyBytesLength(bytes.length, Score.SIZE_IN_BYTES + WeightMatrix.SIZE_IN_BYTES);
+        verifyBytesLength(bytes.length, ScoredWeightMatrix.SIZE_IN_BYTES);
         ByteBuffer byteBuffer = ByteBuffer.wrap(bytes);
         return new Score(byteBuffer.getFloat(), byteBuffer.getFloat());
+    }
+
+    public static WeightMatrix deserializeWeightMatrixFromScoredWeightMatrix(byte[] bytes) {
+        verifyBytesLength(bytes.length, ScoredWeightMatrix.SIZE_IN_BYTES);
+        return deserializeWeightMatrix(ByteBuffer.wrap(bytes, Score.SIZE_IN_BYTES, WeightMatrix.SIZE_IN_BYTES));
     }
 
     private static void verifyBytesLength(int actualSize, int expectedSize) {
