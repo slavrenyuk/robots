@@ -13,10 +13,10 @@ import sergey.lavrenyuk.nn.RandomWeightMatrixGenerator;
 import sergey.lavrenyuk.nn.WeightMatrix;
 import sergey.lavrenyuk.nn.scoring.Score;
 import sergey.lavrenyuk.nn.scoring.ScoredWeightMatrix;
-import sergey.lavrenyuk.nn.training.io.FileReader;
-import sergey.lavrenyuk.nn.training.io.FileWriter;
-import sergey.lavrenyuk.nn.training.io.PartitionedFileReader;
-import sergey.lavrenyuk.nn.training.io.PartitionedFileWriter;
+import sergey.lavrenyuk.io.FileReader;
+import sergey.lavrenyuk.io.FileWriter;
+import sergey.lavrenyuk.io.PartitionedFileReader;
+import sergey.lavrenyuk.io.PartitionedFileWriter;
 import sergey.lavrenyuk.nn.training.utils.TrainerUtils;
 
 import java.io.File;
@@ -109,6 +109,7 @@ public class Trainer {
                         continue;
                     }
 
+                    log.println("Survivors number = %d", SURVIVORS);
                     log.println("\nConfirm and continue? Y/N");
 
                     if ("Y".equalsIgnoreCase(scanner.nextLine())) {

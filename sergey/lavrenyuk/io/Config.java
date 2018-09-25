@@ -21,6 +21,10 @@ public class Config {
         return getString("neuralNetwork.mode");
     }
 
+    public static String getNeuralNetworkEnemy() {
+        return getString("neuralNetwork.enemy");
+    }
+
     public static String getNeuralNetworkMatrixMaxAbsWeight() {
         return getString("neuralNetwork.matrixMaxAbsWeight");
     }

@@ -1,7 +1,7 @@
 package sergey.lavrenyuk.test;
 
 import sergey.lavrenyuk.io.Serializer;
-import sergey.lavrenyuk.nn.training.io.PartitionedFileWriter;
+import sergey.lavrenyuk.io.PartitionedFileWriter;
 import sergey.lavrenyuk.nn.WeightMatrix;
 
 import java.io.IOException;

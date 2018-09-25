@@ -29,9 +29,6 @@ import static sergey.lavrenyuk.geometry.GeometryUtils.toNormalizedMovement;
 // TODO document why everything is wrapped into try blocks
 public class Perceptron extends AdvancedRobot {
 
-    // up to 10 different exceptions will be saved and printed at the end of the battle
-    private static final Exceptions exceptions = new Exceptions(10);
-
     // we have a limitation on initializing static and final fields
     // base robot class is fully initialized and set up only in the run() method
     private static boolean staticInitialized = false;
@@ -44,6 +41,9 @@ public class Perceptron extends AdvancedRobot {
     private static double BATTLE_FIELD_WIDTH;
     private static double BATTLE_FIELD_HEIGHT;
     private static double ROBOT_SIZE;
+
+    // up to 10 different exceptions will be saved and printed at the end of the battle
+    private static final Exceptions exceptions = new Exceptions(10);
 
     // maximum number of rounds ended with nonrecoverable exception for robot to get disabled
     // we will anyway get sporadic exceptions, e.g. the robot thread may get stuck because of too long garbage collection

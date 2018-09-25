@@ -1,4 +1,4 @@
-package sergey.lavrenyuk.nn.training.io;
+package sergey.lavrenyuk.nn.training.utils;
 
 import sergey.lavrenyuk.io.Reader;
 

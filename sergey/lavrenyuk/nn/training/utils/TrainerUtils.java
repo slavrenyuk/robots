@@ -5,7 +5,6 @@ import sergey.lavrenyuk.io.Writer;
 import sergey.lavrenyuk.nn.RandomWeightMatrixGenerator;
 import sergey.lavrenyuk.nn.WeightMatrix;
 import sergey.lavrenyuk.nn.scoring.ScoredWeightMatrix;
-import sergey.lavrenyuk.nn.training.io.ReaderFromIterator;
 
 import java.io.IOException;
 import java.util.ArrayList;

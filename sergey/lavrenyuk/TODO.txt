@@ -1,9 +1,5 @@
 
-1. Update training:
-    - add ability to get some amount of survivors from file and save them as just weight matrices to another file (i.e. for fighting mode)
-        (consider to call file as enemy name)
-
-2. implement fighting mode (? use different name ?)
+1. Update training - add ability to get some amount of survivors from file and save them as just weight matrices to another file
 
 
 TECH DEBT
@@ -12,11 +8,9 @@ TECH DEBT
 
 2. add project description to README file
 
-3. check Trainer, Serializer, PartitionedFiles and Exceptions unit tests coverage
+3. check Trainer, Serializer, PartitionedFiles, RandomElementSupplier and Exceptions unit tests coverage
 
 4. Document list of Robocode bugfeatures:
     (1) empty file created if not found
     (2) OnBattleEnded, OnRoundEnded, OnDeath, OnWin are  not triggered on exception
     (3) OnRoundEnded and OnBattleEnded are triggered before OnDeath and OnWin
-
-5. slightly reorganize Perceptron's fields order
