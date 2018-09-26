@@ -1,4 +1,4 @@
-package sergey.lavrenyuk;
+package sergey.lavrenyuk.io;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,10 +15,8 @@ public class Exceptions {
     public void add(String exceptionMessage) {
         // find if we already faced such exception and increment its occurrences
         for (ExceptionInfo exception : exceptions) {
-            if (exception.message.equals(exceptionMessage)) {
-                if (exception.occurrences < Long.MAX_VALUE) {
-                    exception.occurrences++;
-                }
+            if (exceptionMessage.equals(exception.getMessage())) {
+                exception.incrementOccurrences();
                 return;
             }
         }
@@ -45,11 +43,21 @@ public class Exceptions {
 
     private static class ExceptionInfo {
 
-        long occurrences = 0;
-        final String message;
+        private long occurrences = 1;
+        private final String message;
 
-        ExceptionInfo(String exceptionMessage) {
+        private ExceptionInfo(String exceptionMessage) {
             this.message = exceptionMessage;
+        }
+
+        public void incrementOccurrences() {
+            if (occurrences < Long.MAX_VALUE) {
+                occurrences++;
+            }
+        }
+
+        public String getMessage() {
+            return message;
         }
 
         @Override

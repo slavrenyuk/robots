@@ -1,5 +1,9 @@
 
 1. Update training - add ability to get some amount of survivors from file and save them as just weight matrices to another file
+    Fighting mode must be also updated to use weight matrices instead of scored weight matrices.
+
+2. Fighting with VelociRobot still shows 92% wins and 84% Robocode score. Consider even more rigorous scoring of the latest
+    survivors and choose only some of them with better values.
 
 
 TECH DEBT

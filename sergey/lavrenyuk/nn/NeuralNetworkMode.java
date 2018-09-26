@@ -52,7 +52,7 @@ public class NeuralNetworkMode {
                 // TODO currently enemy file is a copy of survivors file
                 // consider adding new command to explicitly extract the data
                 // and transform it from scored weight matrices to weight matrices
-                String enemyFileName = String.format("enemies/%s.dat", Config.getNeuralNetworkEnemy());
+                String enemyFileName = Config.getNeuralNetworkEnemy() + ".dat";
                 File enemyFile = IO.getFile(enemyFileName);
 
                 // Robocode automatically creates an empty file if it was not found

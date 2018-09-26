@@ -10,6 +10,7 @@ import robocode.StatusEvent;
 import robocode.util.Utils;
 import sergey.lavrenyuk.geometry.Data2D;
 import sergey.lavrenyuk.io.Config;
+import sergey.lavrenyuk.io.Exceptions;
 import sergey.lavrenyuk.io.IO;
 import sergey.lavrenyuk.io.Log;
 import sergey.lavrenyuk.nn.NeuralNetwork;
@@ -210,7 +211,6 @@ public class Perceptron extends AdvancedRobot {
             roundResultConsumer.close();
         } catch (Throwable t) {
             exceptions.add(t.getMessage());
-            log.error(t.getMessage());
         } finally {
             if (roundsFailed == 0) {
                 log.info("No rounds failed with a nonrecoverable exception.");
