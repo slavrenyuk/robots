@@ -6,6 +6,9 @@ import sergey.lavrenyuk.nn.WeightMatrix;
 
 import java.nio.ByteBuffer;
 
+/**
+ * Serializer for converting {@link Score}, {@link WeightMatrix} and {@link ScoredWeightMatrix} to and from array of bytes.
+ */
 public class Serializer {
 
     private Serializer() {}

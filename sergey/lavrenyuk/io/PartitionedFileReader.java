@@ -8,6 +8,13 @@ import java.io.InputStream;
 import java.util.Iterator;
 import java.util.function.Function;
 
+/**
+ * {@link Reader} that reads items from a multiple files with the same name pattern. Once a particular file is completely read,
+ * it closes it and starts reading the next file. E.g. file name pattern "abc{}.dat" will be resolved to file names "abc0.dat",
+ * "abc1.dat", "abc2.dat" and so on.
+ *
+ * @param <T> type of items to read
+ */
 public class PartitionedFileReader<T> implements Reader<T> {
 
     private final Iterator<File> fileIterator;

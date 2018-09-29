@@ -3,6 +3,11 @@ package sergey.lavrenyuk.io;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Class for storing exception occurred during battles. It is required, since there are a lot of logs during battle, especially
+ * considering the amount of rounds required for scoring. With this class, we collect exception message during the battle
+ * and print them at the end.
+ */
 public class Exceptions {
 
     private final int exceptionsLimit;
@@ -33,7 +38,12 @@ public class Exceptions {
 
     @Override
     public String toString() {
+        if (isEmpty()) {
+            return "No exceptions";
+        }
+
         StringBuilder stringBuilder = new StringBuilder("Exceptions:\n");
+        stringBuilder.append("\n===========================================================\n");
         exceptions.forEach(exceptionOccurrences ->  {
             stringBuilder.append(exceptionOccurrences.toString());
             stringBuilder.append("\n===========================================================\n");

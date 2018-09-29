@@ -3,6 +3,11 @@ package sergey.lavrenyuk.io;
 import java.io.Closeable;
 import java.io.IOException;
 
+/**
+ * Simple reader interface
+ *
+ * @param <T> type of items to read
+ */
 public interface Reader<T> extends Closeable {
 
     // null if eof reached

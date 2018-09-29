@@ -11,19 +11,40 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
+/**
+ * Helper for {@link PartitionedFileReader} and {@link PartitionedFileWriter}, as well as any other code that deals with
+ * partitioned files. Partitioned file is a bunch of files on a disk with the same name pattern. E.g. partitioned
+ * file with name pattern "abc{}.dat" may be represented on the disk by several files "abc0.dat", "abc1.dat" and "abc2.dat".
+ *
+ * There are two ideas behind the partitioned files:
+ * <ul>
+ *     <li>each file is not too big, which improves performance</li>
+ *     <li>we can process small files one by one. in case if processing fails, we can start from the file that failed</li>
+ * </ul>
+ */
 public class PartitionedFiles {
+
+    private PartitionedFiles() {}
 
     private static final String PLACEHOLDER = "{}";
 
+    /**
+     * Substitute {@link #PLACEHOLDER} in the file name pattern with the provided integer.
+     */
     public static String resolvePlaceholder(String fileNamePattern, int index) {
         return fileNamePattern.replace(PLACEHOLDER, Integer.toString(index));
     }
 
+    /**
+     * Check if any file corresponding to the specified file pattern exists.
+     */
     public static boolean exists(String filePattern) {
         return asStream(filePattern).findAny().isPresent();
     }
 
-    // returns -1 if file not found
+    /**
+     * Returns the latest (highest) index of a file corresponding to the specified file pattern. Returns -1 if file not found.
+     */
     public static int latestFileIndex(String filePattern) {
 
         Pattern pattern = fileNamePattern(filePattern);
@@ -41,6 +62,10 @@ public class PartitionedFiles {
         return maxFileIndex;
     }
 
+    /**
+     * Returns the latest (with the highest index) file name corresponding to the specified file pattern.
+     * Returns null if file not found.
+     */
     public static String latestFileName(String filePattern) {
         int maxFileIndex = latestFileIndex(filePattern);
         return (maxFileIndex > -1)
@@ -48,10 +73,16 @@ public class PartitionedFiles {
                 : null;
     }
 
+    /**
+     * Returns the next (in regards to indexes) file name corresponding to the specified file pattern.
+     */
     public static String nextFileName(String filePattern) {
         return resolvePlaceholder(filePattern, latestFileIndex(filePattern) + 1);
     }
 
+    /**
+     * Get all indexes of existing files corresponding to the specified file pattern, sorted in ascending order.
+     */
     public static Iterable<Integer> getFileIndexes(String filePattern) {
 
         Pattern pattern = fileNamePattern(filePattern);
@@ -68,24 +99,49 @@ public class PartitionedFiles {
         return result;
     }
 
+    /**
+     * Returns a {@link Stream} of files corresponding to the specified file pattern.
+     *
+     * Note that the returned {@link Stream} corresponds to the files that exists on the file system.
+     */
     public static Stream<File> asStream(String filePattern) {
         Pattern pattern = fileNamePattern(filePattern);
         File[] files = directory(filePattern).listFiles((dir, name) -> pattern.matcher(name).matches());
         return Arrays.stream(files);
     }
 
+    /**
+     * Returns a {@link Supplier} of files corresponding to the specified file pattern.
+     *
+     * Note that the returned {@link Supplier} doesn't check if the files actually exists on the file system.
+     */
     public static Supplier<File> asSupplier(String filePattern) {
         return new FileSupplier(filePattern, new InfiniteIndexIterator());
     }
 
+    /**
+     * Returns a {@link Supplier} of files corresponding to the specified file pattern using the provided {@code fileIndexIterator}.
+     *
+     * May be used in conjunction with {@link #getFileIndexes(String)}.
+     */
     public static Supplier<File> asSupplier(String filePattern, Iterator<Integer> fileIndexIterator) {
         return new FileSupplier(filePattern, fileIndexIterator);
     }
 
+    /**
+     * Returns an {@link Iterator} over files corresponding to the specified file pattern.
+     *
+     * Note that the returned {@link Iterator} iterates over files that exists on the file system.
+     */
     public static Iterator<File> asIterator(String filePattern) {
         return new FileIterator(filePattern, getFileIndexes(filePattern).iterator());
     }
 
+    /**
+     * Returns an {@link Iterator} over files corresponding to the specified file pattern using the provided {@code fileIndexIterator}.
+     *
+     * May be used in conjunction with {@link #getFileIndexes(String)}.
+     */
     public static Iterator<File> asIterator(String filePattern, Iterator<Integer> fileIndexIterator) {
         return new FileIterator(filePattern, fileIndexIterator);
     }

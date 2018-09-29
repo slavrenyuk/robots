@@ -1,20 +1,33 @@
 
-1. Update training - add ability to get some amount of survivors from file and save them as just weight matrices to another file
-    Fighting mode must be also updated to use weight matrices instead of scored weight matrices.
+1. Write down VelociRobot training stats - wins percentage and Robocode score (initial / trained)
 
-2. Fighting with VelociRobot still shows 92% wins and 84% Robocode score. Consider even more rigorous scoring of the latest
-    survivors and choose only some of them with better values.
+2. Add info about survivors  / win percentage files to MEMO.txt, it is not obvious why first generation survivors
+    had 100% wins, but last generation survivors has less.
 
 
 TECH DEBT
 
-1. add javadocs
+1. Add javadocs to Perceptron and nn package (+ subpackages),
+    then perform next iteration of adding javadocs - check methods that require documentation
 
-2. add project description to README file
+2. Add project description to README file
 
-3. check Trainer, Serializer, PartitionedFiles, RandomElementSupplier and Exceptions unit tests coverage
+3. Document list of Robocode bugfeatures:
+    (1) OnBattleEnded, OnRoundEnded, OnDeath, OnWin are  not triggered on exception
+    (2) OnRoundEnded and OnBattleEnded are triggered before OnDeath and OnWin
 
-4. Document list of Robocode bugfeatures:
-    (1) empty file created if not found
-    (2) OnBattleEnded, OnRoundEnded, OnDeath, OnWin are  not triggered on exception
-    (3) OnRoundEnded and OnBattleEnded are triggered before OnDeath and OnWin
+4. Consider refactoring Trainer, though it works well
+
+FEATURES
+
+1. Currently Perceptron's behaviour is predictable, since exactly the same input parameters will lead to exactly the same actions.
+    To prevent that, a new random neuron may be added, similarly to the shift neuron.
+    Investigation required:
+        - Do we need to add random neuron to both input and hidden neurons, or only to one of them?
+        - Will that actually work, i.e. the behavior would be better?
+        - Why do we need this feature? Sample enemies do not remember Perceptron's actions. Only top robots do that.
+            But they are still very hard to beat. And it would be hard to train Perceptron to fight them, since we have a lot
+            of rounds, and they will get a lot of information about Perceptron.
+
+2. With current scoring (win percentage, energy diff) a robot that don't fire, but only dodges bullets may get the highest score.
+    But Robocode scoring is different, and such robot will not get high Robocode score.

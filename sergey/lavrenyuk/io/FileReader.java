@@ -7,6 +7,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.function.Function;
 
+/**
+ * {@link Reader} that reads items from a single file
+ *
+ * @param <T> type of items to read
+ */
 public class FileReader<T> implements Reader<T> {
 
     private final InputStream in;

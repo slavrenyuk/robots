@@ -1,5 +1,8 @@
 package sergey.lavrenyuk.geometry;
 
+/**
+ * Helper methods for Robocode battlefield geometry
+ */
 public class GeometryUtils {
 
     private GeometryUtils() {}

@@ -49,6 +49,7 @@ public class Trainer {
     private String NEW_GENERATION_FILE_PATTERN;
     private String SURVIVORS_FILE_PATTERN;
     private String WIN_RATIO_FILE;
+    private String ENEMY_FILE_NAME;
     private int MATRICES_PER_OUTPUT_FILE;
     private int POPULATION;
     private int SURVIVORS;
@@ -83,6 +84,7 @@ public class Trainer {
             log.println("%s\t\textract survivors from the scored population", Command.EXTRACT_SURVIVORS);
             log.println("%s\tcreate initial generation", Command.CREATE_INITIAL_GENERATION);
             log.println("%s\t\tcreate next generation from survivors", Command.CREATE_NEXT_GENERATION);
+            log.println("%s\tcreate a file for fighting mode based on survivors", Command.PREPARE_SURVIVORS_FOR_FIGHTING);
 
             log.println("%s\t\tprint next generation information", Command.NEXT_GENERATION_INFO);
             log.println("%s\tprint next generation verbose information", Command.NEXT_GENERATION_INFO_VERBOSE);
@@ -159,6 +161,35 @@ public class Trainer {
                         processSurvivorsToNextGeneration(fileName);
                     }
                     break;
+                } case PREPARE_SURVIVORS_FOR_FIGHTING: {
+                    File enemyFile = IO.getFile(ENEMY_FILE_NAME);
+                    if (enemyFile.length() > 0) { // Robocode automatically creates an empty file if it was not found
+                        log.println("Enemy file '%s' already exists. Delete it manually yto proceed", ENEMY_FILE_NAME);
+                        continue;
+                    }
+
+                    if (!PartitionedFiles.exists(SURVIVORS_FILE_PATTERN)) {
+                        log.println("Survivors file with pattern '%s' not found.", SURVIVORS_FILE_PATTERN);
+                        continue;
+                    }
+                    log.println("\nFound survivors file indexes: %s", PartitionedFiles.getFileIndexes(SURVIVORS_FILE_PATTERN));
+                    log.print("Input index (leave blank to use the latest): ");
+                    String input = scanner.nextLine();
+
+                    int index = input.trim().isEmpty()
+                            ? PartitionedFiles.latestFileIndex(SURVIVORS_FILE_PATTERN)
+                            : Integer.parseInt(input);
+                    String survivorsFileName = PartitionedFiles.resolvePlaceholder(SURVIVORS_FILE_PATTERN, index);
+                    log.println("%s will be used", survivorsFileName);
+
+                    log.println("\nHow many top survivors should be used for fighting mode (leave blank to use all): ");
+                    input = scanner.nextLine();
+                    int topSurvivorsForFighting = input.trim().isEmpty()
+                            ? Integer.MAX_VALUE
+                            : Integer.parseInt(input);
+
+                    prepareSurvivorsForFighting(enemyFile, IO.getFile(survivorsFileName), topSurvivorsForFighting);
+                    break;
                 } case NEXT_GENERATION_INFO: {
                     printPopulationInfoShort();
                     break;
@@ -201,6 +232,7 @@ public class Trainer {
         NEW_GENERATION_FILE_PATTERN = Config.getNeuralNetworkWeightMatrixFilePattern();
         SURVIVORS_FILE_PATTERN = Config.getTrainingSurvivorsFilePattern();
         WIN_RATIO_FILE = Config.getTrainingWinRatioFile();
+        ENEMY_FILE_NAME = Config.getNeuralNetworkEnemyFileName();
         MATRICES_PER_OUTPUT_FILE = Config.getTrainingMatricesPerOutputFile();
         POPULATION = Config.getTrainingPopulation();
         SURVIVORS = Config.getTrainingSurvivors();
@@ -301,6 +333,20 @@ public class Trainer {
                 MUTATED_COPIES,
                 MUTATION_PERCENTAGE,
                 POPULATION);
+    }
+
+    private void prepareSurvivorsForFighting(File enemyFile, File survivorsFile, int topSurvivorsForFighting) throws IOException {
+        Reader<WeightMatrix> reader = new FileReader<>(
+                survivorsFile, ScoredWeightMatrix.SIZE_IN_BYTES, Serializer::deserializeWeightMatrixFromScoredWeightMatrix);
+        Writer<WeightMatrix> writer = new FileWriter<>(enemyFile, Serializer::serializeWeightMatrix);
+
+        int reads = 0;
+        WeightMatrix survivor;
+        while (((survivor = reader.read()) != null) && ++reads <= topSurvivorsForFighting) {
+            writer.write(survivor);
+        }
+        writer.close();
+        reader.close();
     }
 
     private void printSurvivorsFile(String survivorsFileName) throws IOException {
@@ -486,6 +532,7 @@ public class Trainer {
         EXTRACT_SURVIVORS,
         CREATE_INITIAL_GENERATION,
         CREATE_NEXT_GENERATION,
+        PREPARE_SURVIVORS_FOR_FIGHTING,
         NEXT_GENERATION_INFO,
         NEXT_GENERATION_INFO_VERBOSE,
         SURVIVORS_SCORE,

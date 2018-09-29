@@ -7,6 +7,11 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.function.Function;
 
+/**
+ * {@link Writer} that writes items to a single file
+ *
+ * @param <T> type of items to write
+ */
 public class FileWriter<T> implements Writer<T> {
 
     private final OutputStream out;

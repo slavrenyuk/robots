@@ -1,5 +1,7 @@
 package sergey.lavrenyuk.io;
 
+import robocode.AdvancedRobot;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -7,22 +9,30 @@ import java.util.Optional;
 import java.util.Properties;
 import java.util.function.Function;
 
+/**
+ * Provides values stored in {@link #CONFIG_PROPERTIES_FILE_NAME} file in the {@link AdvancedRobot#getDataDirectory() robot's folder}.
+ * Relies on {@link IO}.
+ *
+ * @see IO
+ */
 public class Config {
 
     private Config() {}
 
-    private static Properties PROPERTIES = loadProperties("config.properties");
+    private static String CONFIG_PROPERTIES_FILE_NAME = "config.properties";
+
+    private static Properties PROPERTIES = loadProperties(CONFIG_PROPERTIES_FILE_NAME);
 
     public static void refresh() {
-        PROPERTIES = loadProperties("config.properties");
+        PROPERTIES = loadProperties(CONFIG_PROPERTIES_FILE_NAME);
     }
 
     public static String getNeuralNetworkMode() {
         return getString("neuralNetwork.mode");
     }
 
-    public static String getNeuralNetworkEnemy() {
-        return getString("neuralNetwork.enemy");
+    public static String getNeuralNetworkEnemyFileName() {
+        return getString("neuralNetwork.enemy") + ".dat";
     }
 
     public static String getNeuralNetworkMatrixMaxAbsWeight() {

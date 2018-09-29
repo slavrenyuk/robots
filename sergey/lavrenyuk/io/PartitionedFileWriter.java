@@ -8,6 +8,13 @@ import java.io.OutputStream;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
+/**
+ * {@link Writer} that writes items to a multiple files with the same name pattern, making sure there won't be more than
+ * beforehand specified amount of items written to each file. E.g. file name pattern "abc{}.dat" will be resolved to file names
+ * "abc0.dat", "abc1.dat", "abc2.dat" and so on.
+ *
+ * @param <T> type of items to write
+ */
 public class PartitionedFileWriter<T> implements Writer<T> {
 
     private final Supplier<File> fileSupplier;

@@ -14,11 +14,10 @@
             once per 150 000 rounds it looses a round because of "too many turns skipped". Presumably that happens because
             of the garbage collection and it is a known Robocode issue.
 
-2)  Update application rendering and view preferences for speed. TODO document what exactly to do - modify via config file
+2)  First enemy is VelociRobot
+    Second enemy is SuperMercutio
 
-3)  First enemy is VelociRobot.
-
-4)  Testing of optimal matrixMaxAbsWeight values.
+3)  Testing of optimal matrixMaxAbsWeight values.
     Battle results with 10000 rounds, random matrices and different matrixMaxAbsWeight values.
 
     matrixMaxAbsWeight,     winPercentage

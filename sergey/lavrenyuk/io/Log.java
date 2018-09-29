@@ -2,6 +2,12 @@ package sergey.lavrenyuk.io;
 
 import java.io.PrintStream;
 
+/**
+ * Simple logger that writes logs to a console provided by {@link IO#getConsole()}
+ * Relies on {@link IO}
+ *
+ * @see IO
+ */
 public class Log {
 
     private static final PrintStream OUT = IO.getConsole();

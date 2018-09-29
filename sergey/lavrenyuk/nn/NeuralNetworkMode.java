@@ -7,7 +7,6 @@ import sergey.lavrenyuk.io.Reader;
 import sergey.lavrenyuk.io.Serializer;
 import sergey.lavrenyuk.nn.scoring.RoundResultConsumer;
 import sergey.lavrenyuk.nn.scoring.Score;
-import sergey.lavrenyuk.nn.scoring.ScoredWeightMatrix;
 import sergey.lavrenyuk.nn.scoring.WeightMatrixScorer;
 
 import java.io.File;
@@ -17,6 +16,9 @@ import java.util.List;
 import java.util.Random;
 import java.util.function.Supplier;
 
+/**
+ * TODO
+ */
 public class NeuralNetworkMode {
 
     public static final String RANDOM = "random";
@@ -49,21 +51,16 @@ public class NeuralNetworkMode {
 
                 break;
             } case FIGHTING: {
-                // TODO currently enemy file is a copy of survivors file
-                // consider adding new command to explicitly extract the data
-                // and transform it from scored weight matrices to weight matrices
-                String enemyFileName = Config.getNeuralNetworkEnemy() + ".dat";
+                String enemyFileName = Config.getNeuralNetworkEnemyFileName();
                 File enemyFile = IO.getFile(enemyFileName);
-
                 // Robocode automatically creates an empty file if it was not found
                 if (!enemyFile.exists() || enemyFile.length() == 0) {
-                    throw new IllegalArgumentException(String.format("Enemy file '%s' not found", enemyFileName));
+                    throw new IllegalArgumentException(
+                            String.format("Enemy file '%s' not found", enemyFile));
                 }
 
-                Reader<WeightMatrix> weightMatrixReader = new FileReader<>(
-                        enemyFile,
-                        ScoredWeightMatrix.SIZE_IN_BYTES,
-                        Serializer::deserializeWeightMatrixFromScoredWeightMatrix);
+                Reader<WeightMatrix> weightMatrixReader =
+                        new FileReader<>(enemyFile, WeightMatrix.SIZE_IN_BYTES, Serializer::deserializeWeightMatrix);
                 List<WeightMatrix> weightMatrixList = readAll(weightMatrixReader);
 
                 this.weightMatrixSupplier = new RandomElementSupplier<>(weightMatrixList);
@@ -84,6 +81,11 @@ public class NeuralNetworkMode {
         return roundResultConsumer;
     }
 
+    /**
+     * Supplier that is initialized with a list of elements, each invocation of {@link #get()} returns a random element
+     * of the list.
+     * @param <T> type of the elements
+     */
     public static class RandomElementSupplier<T> implements Supplier<T> {
 
         private final Random random = new Random();
@@ -99,6 +101,9 @@ public class NeuralNetworkMode {
         }
     }
 
+    /**
+     * Consumer that simply ignores the input data
+     */
     public static class NoOpResultConsumer implements RoundResultConsumer {
 
         @Override
