@@ -27,7 +27,7 @@ public class Runner {
         // - starts with "Test"
         // - has any number of any characters except $ (inner class marker) in the middle
         // - ends with ".class"
-        Pattern pattern = Pattern.compile("Test[^\\$]*\\.class");
+        Pattern pattern = Pattern.compile("Test[^$]*\\.class");
 
         Arrays.stream(testFolder.list())
                 .filter(fileName -> pattern.matcher(fileName).matches())

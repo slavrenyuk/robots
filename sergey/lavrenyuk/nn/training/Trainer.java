@@ -164,7 +164,7 @@ public class Trainer {
                 } case PREPARE_SURVIVORS_FOR_FIGHTING: {
                     File enemyFile = IO.getFile(ENEMY_FILE_NAME);
                     if (enemyFile.length() > 0) { // Robocode automatically creates an empty file if it was not found
-                        log.println("Enemy file '%s' already exists. Delete it manually yto proceed", ENEMY_FILE_NAME);
+                        log.println("Enemy file '%s' already exists. Delete it manually to proceed.", ENEMY_FILE_NAME);
                         continue;
                     }
 

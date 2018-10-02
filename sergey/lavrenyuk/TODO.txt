@@ -1,9 +1,28 @@
 
-1. Write down VelociRobot training stats - wins percentage and Robocode score (initial / trained)
+1. Write down VelociRobot training stats - win percentage and Robocode score (initial / trained)
+
+1000 rounds
+
+VelociRobot
+initial
+Robocode score  38%
+win percentage  29%
+trained
+Robocode score  84%
+win percentage  96%
+
+SuperMercutio
+initial
+Robocode score  16%
+win percentage  12%
+trained
+Robocode score  72%
+win percentage  98%
 
 2. Add info about survivors  / win percentage files to MEMO.txt, it is not obvious why first generation survivors
     had 100% wins, but last generation survivors has less.
 
+3. replace enemy name property with enemy file, thus it would be possible to have several different files for enemy.
 
 TECH DEBT
 
@@ -20,6 +39,8 @@ TECH DEBT
 
 FEATURES
 
+This section describes features that may be added in the future, current results are good enough anyway.
+
 1. Currently Perceptron's behaviour is predictable, since exactly the same input parameters will lead to exactly the same actions.
     To prevent that, a new random neuron may be added, similarly to the shift neuron.
     Investigation required:
@@ -31,3 +52,9 @@ FEATURES
 
 2. With current scoring (win percentage, energy diff) a robot that don't fire, but only dodges bullets may get the highest score.
     But Robocode scoring is different, and such robot will not get high Robocode score.
+    I will have to duplicate Robocode scoring logic, see http://robowiki.net/wiki/Robocode/Scoring
+    Either make new scores compatible with previous format, or migrate survivors file to a new format.
+
+    I tried to refactor Perceptron to extract scoring logic to plugin (as well as neural network and detecting failed rounds),
+    but it becomes very complicated. Investigate another approaches. Idea is to not mess with scoring logic if it is not required,
+    or use exactly the same logic we need, since it is based on robot events.
