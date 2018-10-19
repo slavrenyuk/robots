@@ -1,7 +1,7 @@
 package sergey.lavrenyuk.test.base;
 
 import sergey.lavrenyuk.io.IO;
-import sergey.lavrenyuk.nn.RandomWeightMatrixGenerator;
+import sergey.lavrenyuk.nn.WeightMatrixGenerator;
 import sergey.lavrenyuk.nn.WeightMatrix;
 
 import java.io.File;
@@ -15,12 +15,12 @@ public class TestUtils {
 
     private TestUtils() {}
 
-    private static final RandomWeightMatrixGenerator matrixGenerator = new RandomWeightMatrixGenerator();
+    private static final WeightMatrixGenerator matrixGenerator = new WeightMatrixGenerator();
 
     private static final float FLOAT_DELTA = 0.000001f;
 
     public static WeightMatrix randomMatrix() {
-        return matrixGenerator.next();
+        return matrixGenerator.generateRandom();
     }
 
     public static byte[] concat(byte[]... data) {

@@ -9,7 +9,7 @@ import sergey.lavrenyuk.io.Serializer;
 import sergey.lavrenyuk.io.Reader;
 import sergey.lavrenyuk.io.Writer;
 import sergey.lavrenyuk.nn.IntGeneratorFromString;
-import sergey.lavrenyuk.nn.RandomWeightMatrixGenerator;
+import sergey.lavrenyuk.nn.WeightMatrixGenerator;
 import sergey.lavrenyuk.nn.WeightMatrix;
 import sergey.lavrenyuk.nn.scoring.Score;
 import sergey.lavrenyuk.nn.scoring.ScoredWeightMatrix;
@@ -67,18 +67,6 @@ public class Trainer {
         Scanner scanner = new Scanner(System.in);
 
         while(true) { // quit when user prints Q
-
-            // initial generation
-            // current generation -> survivors
-            // survivors -> next generation
-            // survivors -> file for fighting TBD (put to <robot>.data/enemies/<enemy_name>.dat
-
-            // current generation info (aka scored weight matrices)
-            // next generation info (aka population info)
-            // next generation verbose info (aka verbose population info)
-            // all generations info (aka win percentage)
-            // survivors info (aka survivors file)
-
             log.println("\nEnter one of the next commands:");
 
             log.println("%s\t\textract survivors from the scored population", Command.EXTRACT_SURVIVORS);
@@ -266,7 +254,7 @@ public class Trainer {
 
     private void createInitialGeneration() throws IOException {
 
-        RandomWeightMatrixGenerator randomWeightMatrixGenerator = new RandomWeightMatrixGenerator();
+        WeightMatrixGenerator weightMatrixGenerator = new WeightMatrixGenerator();
 
         Supplier<Integer> matrixMaxAbsWeightGenerator = new IntGeneratorFromString(MATRIX_MAX_ABS_WEIGHT_STRING);
 
@@ -276,7 +264,7 @@ public class Trainer {
                 Serializer::serializeWeightMatrix);
 
         for (int i = 0; i < POPULATION; i++) {
-            initialGenerationWriter.write(randomWeightMatrixGenerator.next(matrixMaxAbsWeightGenerator.get()));
+            initialGenerationWriter.write(weightMatrixGenerator.generateRandom(matrixMaxAbsWeightGenerator.get()));
         }
         initialGenerationWriter.close();
     }

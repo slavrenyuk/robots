@@ -1,42 +1,45 @@
-package sergey.lavrenyuk.nn;
+package sergey.lavrenyuk;
 
 import sergey.lavrenyuk.io.Config;
 import sergey.lavrenyuk.io.FileReader;
 import sergey.lavrenyuk.io.IO;
 import sergey.lavrenyuk.io.Reader;
 import sergey.lavrenyuk.io.Serializer;
+import sergey.lavrenyuk.nn.IntGeneratorFromString;
+import sergey.lavrenyuk.nn.WeightMatrixGenerator;
+import sergey.lavrenyuk.nn.WeightMatrix;
 import sergey.lavrenyuk.nn.scoring.RoundResultConsumer;
-import sergey.lavrenyuk.nn.scoring.Score;
 import sergey.lavrenyuk.nn.scoring.WeightMatrixScorer;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Random;
 import java.util.function.Supplier;
 
 /**
  * TODO
  */
-public class NeuralNetworkMode {
+public class RobotMode {
 
-    public static final String RANDOM = "random";
-    public static final String SCORING = "scoring";
-    public static final String FIGHTING = "fighting";
+    private static final String RANDOM = "random";
+    private static final String SCORING = "scoring";
+    private static final String FIGHTING = "fighting";
 
     private final Supplier<WeightMatrix> weightMatrixSupplier;
     private final RoundResultConsumer roundResultConsumer;
 
-    public NeuralNetworkMode(String mode) throws IOException {
+    public RobotMode(String mode) throws IOException {
         switch (mode) {
             case RANDOM: {
                 Supplier<Integer> maxAbsWeightSupplier =
                         new IntGeneratorFromString(Config.getNeuralNetworkMatrixMaxAbsWeight());
-                RandomWeightMatrixGenerator generator = new RandomWeightMatrixGenerator();
+                WeightMatrixGenerator generator = new WeightMatrixGenerator();
 
-                this.weightMatrixSupplier = () -> generator.next(maxAbsWeightSupplier.get());
-                this.roundResultConsumer = new NoOpResultConsumer();
+                this.weightMatrixSupplier = () -> generator.generateRandom(maxAbsWeightSupplier.get());
+                this.roundResultConsumer = null;
 
                 break;
             } case SCORING: {
@@ -64,11 +67,11 @@ public class NeuralNetworkMode {
                 List<WeightMatrix> weightMatrixList = readAll(weightMatrixReader);
 
                 this.weightMatrixSupplier = new RandomElementSupplier<>(weightMatrixList);
-                this.roundResultConsumer = new NoOpResultConsumer();
+                this.roundResultConsumer = null;
 
                 break;
             } default: {
-                throw new IllegalArgumentException("Unsupported neural network mode " + mode);
+                throw new IllegalArgumentException("Unsupported robot mode " + mode);
             }
         }
     }
@@ -77,8 +80,8 @@ public class NeuralNetworkMode {
         return weightMatrixSupplier;
     }
 
-    public RoundResultConsumer getRoundResultConsumer() {
-        return roundResultConsumer;
+    public Optional<RoundResultConsumer> getRoundResultConsumer() {
+        return Optional.ofNullable(roundResultConsumer);
     }
 
     /**
@@ -99,18 +102,6 @@ public class NeuralNetworkMode {
         public T get() {
             return list.get(random.nextInt(list.size()));
         }
-    }
-
-    /**
-     * Consumer that simply ignores the input data
-     */
-    public static class NoOpResultConsumer implements RoundResultConsumer {
-
-        @Override
-        public void accept(Score.RoundResult roundResult) { }
-
-        @Override
-        public void close() { }
     }
 
     public static <T> List<T> readAll(Reader<T> reader) throws IOException {

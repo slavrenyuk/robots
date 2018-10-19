@@ -27,12 +27,12 @@ public class Config {
         PROPERTIES = loadProperties(CONFIG_PROPERTIES_FILE_NAME);
     }
 
-    public static String getNeuralNetworkMode() {
-        return getString("neuralNetwork.mode");
+    public static String getRobotMode() {
+        return getString("robot.mode");
     }
 
     public static String getNeuralNetworkEnemyFileName() {
-        return getString("neuralNetwork.enemy") + ".dat";
+        return getString("neuralNetwork.enemyFileName");
     }
 
     public static String getNeuralNetworkMatrixMaxAbsWeight() {

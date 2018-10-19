@@ -1,3 +1,4 @@
+TASKS
 
 1. Write down VelociRobot training stats - win percentage and Robocode score (initial / trained)
 
@@ -21,12 +22,11 @@ win percentage  98%
 
 2. Add info about survivors  / win percentage files to MEMO.txt, it is not obvious why first generation survivors
     had 100% wins, but last generation survivors has less.
-
-3. replace enemy name property with enemy file, thus it would be possible to have several different files for enemy.
+    OR remove the intermediate files at all
 
 TECH DEBT
 
-1. Add javadocs to Perceptron and nn package (+ subpackages),
+1. Add javadocs to Perceptron, nn, module, event packages (+ subpackages),
     then perform next iteration of adding javadocs - check methods that require documentation
 
 2. Add project description to README file
@@ -34,8 +34,6 @@ TECH DEBT
 3. Document list of Robocode bugfeatures:
     (1) OnBattleEnded, OnRoundEnded, OnDeath, OnWin are  not triggered on exception
     (2) OnRoundEnded and OnBattleEnded are triggered before OnDeath and OnWin
-
-4. Consider refactoring Trainer, though it works well
 
 FEATURES
 
@@ -50,7 +48,17 @@ This section describes features that may be added in the future, current results
             But they are still very hard to beat. And it would be hard to train Perceptron to fight them, since we have a lot
             of rounds, and they will get a lot of information about Perceptron.
 
-2. With current scoring (win percentage, energy diff) a robot that don't fire, but only dodges bullets may get the highest score.
+2. IN PROGRESS
+    TODO:
+    - add events for scoring (i.e. bullet hit)
+    - introduce new property and corresponding code for switching between scoring modes
+    - add unit tests for all of that
+    - manually test new scoring mode:
+        - correct score is added, use logging
+        - the whole system works as expected
+        - also perform regression smoke test for the old scoring mode
+
+    With current scoring (win percentage, energy diff) a robot that don't fire, but only dodges bullets may get the highest score.
     But Robocode scoring is different, and such robot will not get high Robocode score.
     I will have to duplicate Robocode scoring logic, see http://robowiki.net/wiki/Robocode/Scoring
     Either make new scores compatible with previous format, or migrate survivors file to a new format.

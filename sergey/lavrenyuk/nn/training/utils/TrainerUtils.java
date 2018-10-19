@@ -2,7 +2,7 @@ package sergey.lavrenyuk.nn.training.utils;
 
 import sergey.lavrenyuk.io.Reader;
 import sergey.lavrenyuk.io.Writer;
-import sergey.lavrenyuk.nn.RandomWeightMatrixGenerator;
+import sergey.lavrenyuk.nn.WeightMatrixGenerator;
 import sergey.lavrenyuk.nn.WeightMatrix;
 import sergey.lavrenyuk.nn.scoring.ScoredWeightMatrix;
 
@@ -186,9 +186,9 @@ public class TrainerUtils {
             }
         }
 
-        RandomWeightMatrixGenerator randomWeightMatrixGenerator = new RandomWeightMatrixGenerator();
+        WeightMatrixGenerator weightMatrixGenerator = new WeightMatrixGenerator();
         for (; written < population; written++) {
-            nextGenerationWriter.write(randomWeightMatrixGenerator.next(matrixMaxAbsWeightGenerator.get()));
+            nextGenerationWriter.write(weightMatrixGenerator.generateRandom(matrixMaxAbsWeightGenerator.get()));
         }
 
         nextGenerationWriter.close();
